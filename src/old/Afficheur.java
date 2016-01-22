@@ -25,27 +25,68 @@ public class Afficheur extends JComponent {
 		JFrame fenetre = new JFrame();
 		final Afficheur view = new Afficheur();
 
-		Forme f = new Forme();
-		f.points.add(new Vector3d(-15, -15, 0));
-		f.points.add(new Vector3d(15, -15, 0));
-		f.points.add(new Vector3d(-15, 15, 0));
-		f.points.add(new Vector3d(15, 15, 0));
-		f.triangles.add(new Forme.Triangle(0, 1, 2));
-		f.triangles.add(new Forme.Triangle(1, 2, 3));
-		f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*40f/180, Vector3f.UNIT_Z);
+		Forme f = new Forme("TRAP");
+		f.points.add(new Vector3f(-15, -15, -4));
+		f.points.add(new Vector3f(15, -15, -6));
+		f.points.add(new Vector3f(-15, 15, -5));
+		f.points.add(new Vector3f(15, 15, -3));
+		f.points.add(new Vector3f(0, 0, 5));
+		f.triangles.add(f.new Triangle(0, 1, 2));
+		f.triangles.add(f.new Triangle(1, 2, 3));
+		f.triangles.add(f.new Triangle(0, 1, 4));
+		f.triangles.add(f.new Triangle(1, 2, 4));
+		f.triangles.add(f.new Triangle(2, 3, 4));
+		f.triangles.add(f.new Triangle(3, 0, 4));
+		f.roundBBRayon = 30;
+		f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
 		f.landed = false;
+		f.doNotFaceCenter();
 		view.formes.add(f);
 		
 		
 		//sol
 
-		f = new Forme();
-		f.points.add(new Vector3d(-200, -200, 0));
-		f.points.add(new Vector3d(200, -200, 0));
-		f.points.add(new Vector3d(-200, -220, 0));
-		f.points.add(new Vector3d(200, -220, 0));
-		f.triangles.add(new Forme.Triangle(0, 1, 2));
-		f.triangles.add(new Forme.Triangle(1, 2, 3));
+		f = new Forme("SOL");
+		f.points.add(new Vector3f(-200, 10, -100)); //0
+		f.points.add(new Vector3f(-200, 10, 100)); //1
+		f.points.add(new Vector3f(200, 10, 100)); //2
+		f.points.add(new Vector3f(200, 10, -100)); //3
+		f.points.add(new Vector3f(-200, -10, -100)); //4
+		f.points.add(new Vector3f(-200, -10, 100)); //5
+		f.points.add(new Vector3f(200, -10, 100)); //6
+		f.points.add(new Vector3f(200, -10, -100)); //7
+		f.triangles.add(f.new Triangle(1,0,4));
+		f.triangles.add(f.new Triangle(4,5,1));
+		f.triangles.add(f.new Triangle(2,1,5));
+		f.triangles.add(f.new Triangle(5,6,2));
+		f.triangles.add(f.new Triangle(3,0,4));
+		f.triangles.add(f.new Triangle(4,7,3));
+		f.triangles.add(f.new Triangle(0, 1, 2));
+		f.triangles.add(f.new Triangle(2, 3, 0));
+		f.triangles.add(f.new Triangle(4, 5, 6));
+		f.triangles.add(f.new Triangle(6, 7, 4));
+		f.triangles.add(f.new Triangle(2,6,7));
+		f.triangles.add(f.new Triangle(7,3,2));
+
+
+
+		f.points.add(new Vector3f(0, 0, 0)); //8
+		f.points.add(new Vector3f(0, 0, 0)); //9
+//		
+		f.points.add(new Vector3f(-33, 10, 0)); //10
+		f.points.add(new Vector3f(20, 10, 20)); //11
+		f.points.add(new Vector3f(20, 10, -20)); //12
+		f.points.add(new Vector3f(0, 55, 0)); //13
+//		f.points.add(new Vector3f(-133, 10, 0)); //10
+//		f.points.add(new Vector3f(-80, 10, 20)); //11
+//		f.points.add(new Vector3f(-80, 10, -20)); //12
+//		f.points.add(new Vector3f(-100, 100, 0)); //13
+		f.roundBBRayon = 250;
+		f.position.set(0,-200,0);
+		f.triangles.add(f.new Triangle(10, 13, 11));
+		f.triangles.add(f.new Triangle(11, 13, 12));
+		f.triangles.add(f.new Triangle(12, 13, 10));
+		f.doNotFaceCenter();
 		view.formes.add(f);
 
 		fenetre.add(view);
@@ -105,8 +146,24 @@ public class Afficheur extends JComponent {
 						for(Forme f2 : view.formes){
 							if(f2.landed){
 								if(f.checkCollision(f2)){
+									//TODO: placer f tel que le point qui a touché soit pile 
+									//dans le plan du triangle touché
+									
+									//TODO: spliter le triangle en créant un nouveau point "identique à l'autre
+									//TODO: "lier" les deux objets via un joint tournant (frottements infini)..oupa
+									
+									//TODO: continuer à le faire réagir à la pesanteur
+									// => modifier l'algo de maj si lié
+									//		faire le calcul des forces => ajout des résultantes => acceleration
+									//		si objet lié à  1 point => si dans la dir de la somme des forces => le garder sinon le retirer et revenir au mode normal
+									//			faire une rotation libre
+									//		si objet lié à deux points & dans la meme dir que force, 
+									//			faire un rotation sur un axe fixe
+									//			en fait, avec une somme des resultantes, pas besoin de deuxième cas, ni de troisième.
+									
 									f.vitesse.set(Vector3d.ZERO);
 									f.acceleration.set(Vector3d.ZERO);
+									f.lastAccel.set(Vector3d.ZERO);
 									f.landed = true;
 								}
 							}
@@ -125,7 +182,7 @@ public class Afficheur extends JComponent {
 						force.set(0,200000,0);
 					}
 					for(Forme f : view.formes){
-						f.applyForce(force);
+						if(!f.landed) f.applyForce(force);
 					}
 					previousMs = currentMs;
 				}
@@ -157,9 +214,9 @@ public class Afficheur extends JComponent {
 //				System.out.println("m = "+forme.points.get(tri.a).toVec3f());
 //				System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a).toVec3f(), null));
 				
-				Vector3f m = forme.transfoMatrix.mult(forme.points.get(tri.a).toVec3f(), null);
-				Vector3f n = forme.transfoMatrix.mult(forme.points.get(tri.b).toVec3f(), null);
-				Vector3f e = forme.transfoMatrix.mult(forme.points.get(tri.c).toVec3f(), null);
+				Vector3f m = forme.transfoMatrix.mult(forme.points.get(tri.a), null);
+				Vector3f n = forme.transfoMatrix.mult(forme.points.get(tri.b), null);
+				Vector3f e = forme.transfoMatrix.mult(forme.points.get(tri.c), null);
 				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
 						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
 						maxY - (int) (n.y + n.z / 2));
