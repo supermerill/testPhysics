@@ -14,28 +14,28 @@ public class Forme {
 	public String toString(){ return name;}
 	Forme(String name){ this.name = name;}
 	
-	boolean landed = true;
-	double mass = 1000; // en gramme
-	double roundBBRayon=1; //rayon of the boundingbox (en m)
+	public boolean landed = true;
+	public double mass = 1000; // en gramme
+	public double roundBBRayon=1; //rayon of the boundingbox (en m)
 	
 	//it's always 0,0,0 !
 	//Vector3d gravityCenter = new Vector3d(0,0,0); // en m
 	
 	//par rapport au centre de gravité
-	Vector3d position = new Vector3d(0,0,0); // en m
-	Vector3d vitesse = new Vector3d(0,0,0); // en m/s
-	Vector3d acceleration = new Vector3d(0,0,0); //en m/ss
-	Vector3d lastAccel = new Vector3d(0,0,0); //en m/ss
+	public Vector3d position = new Vector3d(0,0,0); // en m
+	public Vector3f vitesse = new Vector3f(0,0,0); // en m/s
+	public Vector3f acceleration = new Vector3f(0,0,0); //en m/ss
+	public Vector3f lastAccel = new Vector3f(0,0,0); //en m/ss
 	
-	Quaternion pangulaire = Quaternion.IDENTITY; //en rad
-	Vector3d vangulaire = new Vector3d(0,0,0); //en rad/s
-	Vector3d aangulaire = new Vector3d(0,0,0); //en rad/ss
+	public Quaternion pangulaire = Quaternion.IDENTITY; //en rad
+	public Quaternion vangulaire = new Quaternion(0,0,0,0); //en rad/s
+	public Quaternion aangulaire = new Quaternion(0,0,0,0); //en rad/ss
 
-	Matrix4f transfoMatrix = new Matrix4f();
+	public Matrix4f transfoMatrix = new Matrix4f();
 
 	//mesh, en coordonées locale (besoin de passer par transfoMatrix)
-	ArrayList<Vector3f> points = new ArrayList<>();
-	ArrayList<Triangle> triangles = new ArrayList<>();
+	public ArrayList<Vector3f> points = new ArrayList<>();
+	public ArrayList<Triangle> triangles = new ArrayList<>();
 	Vector3d calcul1 = new Vector3d();
 	Vector3f calculF = new Vector3f();
 
@@ -59,24 +59,24 @@ public class Forme {
 		//update pos
 		System.out.println("posBefore: "+position);
 		System.out.println("vitBefore: "+vitesse);
-		calcul1.set(vitesse).multLocal(ms*0.001d);
-		position.addLocal(calcul1);
-		calcul1.set(lastAccel).multLocal(ms*ms*0.000001d);
-		position.addLocal(calcul1);
+		calculF.set(vitesse).multLocal(ms*0.001f);
+		position.addLocal(calcul1.set(calculF));
+		calculF.set(lastAccel).multLocal(ms*ms*0.000001f);
+		position.addLocal(calcul1.set(calculF));
 //		position.x += (float)( (((double)vitesse.x)*ms)/1000 + (((((double)acceleration.x)*ms)/1000)*ms)/1000 );
 //		position.y += (float)( (((double)vitesse.y)*ms)/1000 + (((((double)acceleration.y)*ms)/1000)*ms)/1000 );
 //		position.z += (float)( (((double)vitesse.z)*ms)/1000 + (((((double)acceleration.z)*ms)/1000)*ms)/1000 );
 		
 		//update vitesse
-		calcul1.set(lastAccel).multLocal(ms*0.0005d);
-		vitesse.addLocal(calcul1);
-		calcul1.set(acceleration).multLocal(ms*0.0005d);
-		vitesse.addLocal(calcul1);
+		calculF.set(lastAccel).multLocal(ms*0.0005f);
+		vitesse.addLocal(calculF);
+		calculF.set(acceleration).multLocal(ms*0.0005f);
+		vitesse.addLocal(calculF);
 //		vitesse.x += (float)( (((double)lastAccel.x)*ms)/2000 + (((double)acceleration.x)*ms)/2000 );
 //		vitesse.y += (float)( (((double)lastAccel.y)*ms)/2000 + (((double)acceleration.y)*ms)/2000 );
 //		vitesse.z += (float)( (((double)lastAccel.z)*ms)/2000 + (((double)acceleration.z)*ms)/2000 );
 		
-		Vector3d temp = lastAccel;
+		Vector3f temp = lastAccel;
 		lastAccel = acceleration;
 		acceleration = temp;
 		acceleration.set(0,0,0);
@@ -86,7 +86,7 @@ public class Forme {
 //			calculF.set(0, -9.81f, 0);
 //			transfoMatrix.invert().multNormal(calculF, calculF);
 //			acceleration.addLocal(calcul1.set(calculF));
-			acceleration.addLocal(calcul1.set(0, -9.81f, 0));
+			acceleration.addLocal(calculF.set(0, -9.81f, 0));
 			//System.out.println("not landed");
 		}
 //		System.out.println("vitesse:"+vitesse);
@@ -100,11 +100,11 @@ public class Forme {
 //		System.out.println("force transformÃ©e = "+calculF);
 		//add to accel
 //		System.out.println("force transformÃ©e = "+calcul1.set(calculF));
-		acceleration.addLocal(calcul1.set(calculF));
+		acceleration.addLocal(calculF);
 //		System.out.println("now accel = "+acceleration);
 	}
 	
-	public boolean checkCollision(Forme f2){
+	public CollisionMobileSol checkCollision(Forme f2){
 		if(f2.landed){
 			if(!landed) return checkCollisionWithLand(f2);
 		}else{
@@ -114,24 +114,32 @@ public class Forme {
 				return checkCollisionWithFreeFlight(f2);
 			}
 		}
-		return false;
+		return null;
 	}
 	
 	//TODO
-	public boolean checkCollisionWithFreeFlight(Forme f2){
-		return false;
+	public CollisionMobileSol checkCollisionWithFreeFlight(Forme f2){
+		return null;
 	}
 
-	public boolean checkCollisionWithLand(Forme f2){
-		if(!checkAlmostCollisionWithLand(f2)) return false;
+	public CollisionMobileSol checkCollisionWithLand(Forme f2){
+		if(!checkAlmostCollisionWithLand(f2)) return null;
 
 		System.out.println("object1 trsf: "+transfoMatrix);
 		System.out.println("object2 trsf: "+f2.transfoMatrix);
-		return checkExactCollision(f2, this.vitesse.toVec3f()) || f2.checkExactCollision(this, vitesse.toVec3f().negate());
+		
+		CollisionMobileSol test1 = checkExactCollision(f2, this.vitesse);
+		if(test1 == null) test1 = f2.checkExactCollision(this, calculF.set(vitesse).negateLocal());
+		if(test1 != null){
+			test1.mobile = this;
+			test1.sol = f2;
+		}
+		return test1;
 		//return checkAlmostCollisionWithLand(f2);
 	}
 
-	public boolean checkExactCollision(Forme f2, Vector3f dir){
+	// enfait, cette fonction check si collision, mais on peut rien en tirer de plus.
+	public CollisionMobileSol checkExactCollision(Forme f2, Vector3f dir){
 		System.out.println("checkExactCollision for "+this+" to "+f2);
 		//check by poly
 		Vector3f tempA = new Vector3f();
@@ -142,7 +150,9 @@ public class Forme {
 
 		Plane plan = new Plane();
 		//get all poly 
-		for(Triangle tri : triangles){
+		
+		for(int idxTri=0;idxTri < triangles.size(); idxTri++){
+			Triangle tri = triangles.get(idxTri);
 			//create the plane for this triangle
 			plan.setPlanePoints(transfoMatrix.mult(points.get(tri.a), tempA), 
 					transfoMatrix.mult(points.get(tri.b), tempB),
@@ -152,7 +162,8 @@ public class Forme {
 			if(plan.getNormal().dot(dir) > 0){
 				//transform it in the f2 repere
 				//check all closes points in the other forme
-				for(Vector3f p : f2.points){
+				for(int idxPoint =0; idxPoint < f2.points.size(); idxPoint++){
+					Vector3f p = f2.points.get(idxPoint);
 					f2.transfoMatrix.mult(p, tempP);
 					System.out.println("testing with p "+p+" => "+plan.whichSide(f2.transfoMatrix.mult(p, tempP))+" ("+f2.transfoMatrix.mult(p, tempP)+")");
 					if(plan.whichSide(tempP) != Side.Positive){
@@ -185,7 +196,14 @@ public class Forme {
 							System.out.println("inside? u="+u+", v="+v+", u+v="+(u+v));
 							boolean inside = (u >= 0) && (v >= 0) && (u + v < 1);
 							if(inside){
-								return true;
+								CollisionMobileSol obj = new CollisionMobileSol();
+								obj.formePointe = f2;
+								obj.formeTriangle = this;
+								obj.idxPointe = idxPoint;
+								obj.idxTriangle = idxTri;
+								obj.positionInWorldPos = tempPInPlan;
+								obj.planTriangle = plan;
+								return obj;
 							}
 						}
 					}
@@ -194,12 +212,12 @@ public class Forme {
 			
 		}
 		
-		return false;
+		return null;
 	}
 	
 	public boolean checkAlmostCollisionWithLand(Forme f2){
 
-		Vector3d directionObj1 = new Vector3d(vitesse);
+		Vector3d directionObj1 = new Vector3d().set(vitesse);
 		if(directionObj1.lengthSquared() == 0){
 //			calcul1.set(0,-1,0);
 //			directionObj1.set(transfoMatrix.invert().multNormal(calcul1.toVec3fLocal(calculF), calculF));

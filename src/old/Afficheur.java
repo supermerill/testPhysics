@@ -122,7 +122,7 @@ public class Afficheur extends JComponent {
 				while (true) {
 					
 					view.repaint();
-					nextMs += 100;
+					nextMs += 300;
 					// sleep for 13ms
 					if (System.currentTimeMillis() < nextMs) {
 						try {
@@ -137,7 +137,7 @@ public class Afficheur extends JComponent {
 //					System.out.println("diff: "+diff +" = "+currentMs+" - "+previousMs);
 					//calculate
 					for(Forme f : view.formes){
-						f.update(diff);
+						f.update(diff/2);
 					}
 					
 
@@ -145,9 +145,11 @@ public class Afficheur extends JComponent {
 						if(!f.landed)
 						for(Forme f2 : view.formes){
 							if(f2.landed){
-								if(f.checkCollision(f2)){
+								CollisionMobileSol collision = f.checkCollision(f2);
+								if(collision != null){
 									//TODO: placer f tel que le point qui a touché soit pile 
 									//dans le plan du triangle touché
+									collision.placeMobile();
 									
 									//TODO: spliter le triangle en créant un nouveau point "identique à l'autre
 									//TODO: "lier" les deux objets via un joint tournant (frottements infini)..oupa
@@ -161,9 +163,9 @@ public class Afficheur extends JComponent {
 									//			faire un rotation sur un axe fixe
 									//			en fait, avec une somme des resultantes, pas besoin de deuxième cas, ni de troisième.
 									
-									f.vitesse.set(Vector3d.ZERO);
-									f.acceleration.set(Vector3d.ZERO);
-									f.lastAccel.set(Vector3d.ZERO);
+									f.vitesse.set(Vector3f.ZERO);
+									f.acceleration.set(Vector3f.ZERO);
+									f.lastAccel.set(Vector3f.ZERO);
 									f.landed = true;
 								}
 							}
