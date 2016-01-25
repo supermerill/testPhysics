@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
+import collision.CollisionUpdater;
+
 import com.jme3.math.FastMath;
 import com.jme3.math.Matrix4f;
 import com.jme3.math.Quaternion;
@@ -39,6 +41,8 @@ public class Afficheur extends JComponent {
 		f.triangles.add(f.new Triangle(3, 0, 4));
 		f.roundBBRayon = 30;
 		f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
+		f.acceleration.set(0,-0.00981f,0);
+		f.lastAccel.set(f.acceleration);
 		f.landed = false;
 		f.doNotFaceCenter();
 		view.formes.add(f);
@@ -119,10 +123,12 @@ public class Afficheur extends JComponent {
 			public void run() {
 				long previousMs = System.currentTimeMillis();
 				long nextMs = System.currentTimeMillis();
+				CollisionUpdater updater = new CollisionUpdater();
+				updater.allFormes = view.formes;
 				while (true) {
 					
 					view.repaint();
-					nextMs += 300;
+					nextMs += 100;
 					// sleep for 13ms
 					if (System.currentTimeMillis() < nextMs) {
 						try {
@@ -135,42 +141,45 @@ public class Afficheur extends JComponent {
 //					System.out.println("finish sleep: "+currentMs+" =?= "+nextMs);
 					int diff = (int)(currentMs-previousMs);
 //					System.out.println("diff: "+diff +" = "+currentMs+" - "+previousMs);
+					System.out.println("NEW TURN ---------------------------------------------------------------------------------");
 					//calculate
 					for(Forme f : view.formes){
-						f.update(diff/2);
+//						f.update(5*diff/2);
 					}
 					
+					updater.updateCollision(currentMs, diff/10);
 
-					for(Forme f : view.formes){
-						if(!f.landed)
-						for(Forme f2 : view.formes){
-							if(f2.landed){
-								CollisionMobileSol collision = f.checkCollision(f2);
-								if(collision != null){
-									//TODO: placer f tel que le point qui a touché soit pile 
-									//dans le plan du triangle touché
-									collision.placeMobile();
-									
-									//TODO: spliter le triangle en créant un nouveau point "identique à l'autre
-									//TODO: "lier" les deux objets via un joint tournant (frottements infini)..oupa
-									
-									//TODO: continuer à le faire réagir à la pesanteur
-									// => modifier l'algo de maj si lié
-									//		faire le calcul des forces => ajout des résultantes => acceleration
-									//		si objet lié à  1 point => si dans la dir de la somme des forces => le garder sinon le retirer et revenir au mode normal
-									//			faire une rotation libre
-									//		si objet lié à deux points & dans la meme dir que force, 
-									//			faire un rotation sur un axe fixe
-									//			en fait, avec une somme des resultantes, pas besoin de deuxième cas, ni de troisième.
-									
-									f.vitesse.set(Vector3f.ZERO);
-									f.acceleration.set(Vector3f.ZERO);
-									f.lastAccel.set(Vector3f.ZERO);
-									f.landed = true;
-								}
-							}
-						}
-					}
+//					for(Forme f : view.formes){
+//						if(!f.landed)
+//						for(Forme f2 : view.formes){
+//							if(f2.landed){
+//								CollisionUpdater.predictRayCollision(f, f2, currentMs);
+//								CollisionMobileSol collision = f.checkCollision(f2);
+//								if(collision != null){
+//									//TODO: placer f tel que le point qui a touchï¿½ soit pile 
+//									//dans le plan du triangle touchï¿½
+//									collision.placeMobile();
+//									
+//									//TODO: spliter le triangle en crï¿½ant un nouveau point "identique ï¿½ l'autre
+//									//TODO: "lier" les deux objets via un joint tournant (frottements infini)..oupa
+//									
+//									//TODO: continuer ï¿½ le faire rï¿½agir ï¿½ la pesanteur
+//									// => modifier l'algo de maj si liï¿½
+//									//		faire le calcul des forces => ajout des rï¿½sultantes => acceleration
+//									//		si objet liï¿½ ï¿½  1 point => si dans la dir de la somme des forces => le garder sinon le retirer et revenir au mode normal
+//									//			faire une rotation libre
+//									//		si objet liï¿½ ï¿½ deux points & dans la meme dir que force, 
+//									//			faire un rotation sur un axe fixe
+//									//			en fait, avec une somme des resultantes, pas besoin de deuxiï¿½me cas, ni de troisiï¿½me.
+//									
+//									f.vitesse.set(Vector3f.ZERO);
+//									f.acceleration.set(Vector3f.ZERO);
+//									f.lastAccel.set(Vector3f.ZERO);
+//									f.landed = true;
+//								}
+//							}
+//						}
+//					}
 					
 					//apply gravity
 					Vector3d force = new Vector3d(0,0,0);
@@ -210,11 +219,12 @@ public class Afficheur extends JComponent {
 		g.setColor(c);
 		System.out.println("===DRAW===");
 		for (Forme forme : formes) {
+			System.out.println(" =Forme@"+forme.position+" : "+forme.transfoMatrix);
 			//create transformation matrix
 			for (Forme.Triangle tri : forme.triangles) {
 
-//				System.out.println("m = "+forme.points.get(tri.a).toVec3f());
-//				System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a).toVec3f(), null));
+				System.out.println("m = "+forme.points.get(tri.a));
+				System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a), null));
 				
 				Vector3f m = forme.transfoMatrix.mult(forme.points.get(tri.a), null);
 				Vector3f n = forme.transfoMatrix.mult(forme.points.get(tri.b), null);

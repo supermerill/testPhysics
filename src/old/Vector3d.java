@@ -231,6 +231,26 @@ public final class Vector3d implements Savable, Cloneable, java.io.Serializable 
     }
 
     /**
+     * <code>addLocal</code> adds a provided vector to this vector internally,
+     * and returns a handle to this vector for easy chaining of calls. If the
+     * provided vector is null, null is returned.
+     *
+     * @param vec
+     *            the vector to add to this vector.
+     * @return this
+     */
+    public Vector3d addLocal(Vector3f vec) {
+        if (null == vec) {
+            logger.warning("Provided vector is null, null returned.");
+            return null;
+        }
+        x += vec.x;
+        y += vec.y;
+        z += vec.z;
+        return this;
+    }
+
+    /**
      *
      * <code>add</code> adds the provided values to this vector, creating a
      * new vector that is then returned.
