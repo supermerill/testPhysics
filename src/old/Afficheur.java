@@ -28,11 +28,11 @@ public class Afficheur extends JComponent {
 		final Afficheur view = new Afficheur();
 
 		Forme f = new Forme("TRAP");
-		f.points.add(new Vector3f(-15, -15, -4));
+		f.points.add(new Vector3f(-15, -15, -6));
 		f.points.add(new Vector3f(15, -15, -6));
-		f.points.add(new Vector3f(-15, 15, -5));
-		f.points.add(new Vector3f(15, 15, -3));
-		f.points.add(new Vector3f(0, 0, 5));
+		f.points.add(new Vector3f(-15, 15, -6));
+		f.points.add(new Vector3f(15, 15, -6));
+		f.points.add(new Vector3f(-3, 3, 6));
 		f.triangles.add(f.new Triangle(0, 1, 2));
 		f.triangles.add(f.new Triangle(1, 2, 3));
 		f.triangles.add(f.new Triangle(0, 1, 4));
@@ -40,9 +40,11 @@ public class Afficheur extends JComponent {
 		f.triangles.add(f.new Triangle(2, 3, 4));
 		f.triangles.add(f.new Triangle(3, 0, 4));
 		f.roundBBRayon = 30;
-		f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
-		f.acceleration.set(0,-0.00981f,0);
+		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
+		f.acceleration.set(0.0000001f,-0.00000981f,0);
+		//f.vangulaire.set(0,0.001f,0); //1 rotation toute les 5sec
 		f.lastAccel.set(f.acceleration);
+		f.physicUpdate = true;
 		f.landed = false;
 		f.doNotFaceCenter();
 		view.formes.add(f);
@@ -147,7 +149,7 @@ public class Afficheur extends JComponent {
 //						f.update(5*diff/2);
 					}
 					
-					updater.updateCollision(currentMs, diff/10);
+					updater.updateCollision(currentMs, diff);
 
 //					for(Forme f : view.formes){
 //						if(!f.landed)
@@ -219,12 +221,13 @@ public class Afficheur extends JComponent {
 		g.setColor(c);
 		System.out.println("===DRAW===");
 		for (Forme forme : formes) {
-			System.out.println(" =Forme@"+forme.position+" : "+forme.transfoMatrix);
+//			System.out.println(" =Forme@"+forme.position+" : "+forme.transfoMatrix);
 			//create transformation matrix
+			g.setColor(c);
 			for (Forme.Triangle tri : forme.triangles) {
 
-				System.out.println("m = "+forme.points.get(tri.a));
-				System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a), null));
+//				System.out.println("m = "+forme.points.get(tri.a));
+//				System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a), null));
 				
 				Vector3f m = forme.transfoMatrix.mult(forme.points.get(tri.a), null);
 				Vector3f n = forme.transfoMatrix.mult(forme.points.get(tri.b), null);
@@ -238,6 +241,36 @@ public class Afficheur extends JComponent {
 				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
 						- (int) (m.y + m.z / 2), maxX + (int) (e.x + e.z / 2),
 						maxY - (int) (e.y + e.z / 2));
+			}
+			g.setColor(Color.RED);
+			if(forme.vitesse.lengthSquared() != 0){
+				Vector3f m = forme.vitesse.mult(1000).addLocal(forme.position.toVec3f());
+				Vector3f n = forme.position.toVec3f();
+				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
+						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
+						maxY - (int) (n.y + n.z / 2));
+			}
+			if(forme.vangulaire.lengthSquared() != 0){
+				Vector3f m = forme.vangulaire.mult(1000).addLocal(forme.position.toVec3f());
+				Vector3f n = forme.position.toVec3f();
+				//draw the rotaion vector?
+//				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
+//						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
+//						maxY - (int) (n.y + n.z / 2));
+				for (Vector3f point : forme.points) {
+					m = forme.transfoMatrix.mult(point, null);
+					Vector3f om = m.subtract(forme.position.toVec3f());
+					Vector3f rotVect = forme.vangulaire.mult(1000).crossLocal(om);
+					n = rotVect.addLocal(m);
+					//compound vith velocity?
+//					n.addLocal(forme.vitesse.mult(1000));
+					//draw each point of rotation
+					g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
+							- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
+							maxY - (int) (n.y + n.z / 2));
+
+				}
+				
 			}
 		}
 

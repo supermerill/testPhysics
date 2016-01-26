@@ -26,7 +26,7 @@ public class CollisionPrediction {
 	public Vector3f localTB;
 	public Vector3f localTC;
 	public Vector3f localP;
-	public Ray rayon;
-	public Vector3f bestP; //for log only
+	public Ray rayon = new Ray();
+	public Vector3f bestP;
 	
 }

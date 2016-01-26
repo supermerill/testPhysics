@@ -2,6 +2,8 @@ package old;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import joint.JointPonctuel;
+
 import collision.CollisionPrediction;
 import collision.CollisionUpdater;
 
@@ -21,7 +23,7 @@ public class Forme {
 	///---------- phys/colision
 	public boolean physicUpdate = false;
 	public HashMap<Forme, CollisionPrediction> predictions = new HashMap<>(2);
-	public HashMap<Forme, Object> joint = new HashMap<>(2); //TODO
+	public HashMap<Forme, JointPonctuel> joint = new HashMap<>(2); //TODO
 	public ArrayList<CollisionPrediction> collideAt = new ArrayList<>(1); //TODO
 	//-------------
 	
@@ -39,12 +41,15 @@ public class Forme {
 	public Vector3f acceleration = new Vector3f(0,0,0); //en m/ms*ms
 	public Vector3f lastAccel = new Vector3f(0,0,0); //en m/ms*ms
 	
-	public Quaternion pangulaire = Quaternion.IDENTITY; //en rad
+	public Quaternion pangulaire = new Quaternion(Quaternion.IDENTITY); //en rad
 	public Vector3f vangulaire = new Vector3f(0,0,0); //en rad/ms
 	public Vector3f aangulaire = new Vector3f(0,0,0); //en rad/ms*ms
 	public Vector3f lastAangulaire = new Vector3f(0,0,0); //en rad/ms*ms
 
 	public Matrix4f transfoMatrix = new Matrix4f();
+	
+	public ArrayList<Vector3f> forces = new ArrayList<>();
+	
 
 	//mesh, en coordon�es locale (besoin de passer par transfoMatrix)
 	public ArrayList<Vector3f> points = new ArrayList<>();
@@ -103,7 +108,7 @@ public class Forme {
 	}
 	//apply a force in g*m/s2
 	public void applyForce(Vector3d force) {
-		System.out.println("force = "+force);
+//		System.out.println("force = "+force);
 		//transform
 		force.toVec3fLocal(calculF).divideLocal((float) mass);
 //		transfoMatrix.invert().multNormal(calculF, calculF);
@@ -324,16 +329,19 @@ public class Forme {
 	//like init method
 	//set tri to not face the center
 	public void doNotFaceCenter() {
-		Vector3f tempA = new Vector3f();
-		Vector3f tempB = new Vector3f();
-		Vector3f tempC = new Vector3f();
+//		Vector3f tempA = new Vector3f();
+//		Vector3f tempB = new Vector3f();
+//		Vector3f tempC = new Vector3f();
 		Vector3f tempP = new Vector3f(0,0,0);
 
 		Plane plan = new Plane();
 		for(Triangle tri : triangles){
-			plan.setPlanePoints(transfoMatrix.mult(points.get(tri.a), tempA), 
-					transfoMatrix.mult(points.get(tri.b), tempB),
-					transfoMatrix.mult(points.get(tri.c), tempC));	//create plane
+//			plan.setPlanePoints(transfoMatrix.mult(points.get(tri.a), tempA), 
+//			transfoMatrix.mult(points.get(tri.b), tempB),
+//			transfoMatrix.mult(points.get(tri.c), tempC));	//create plane
+			plan.setPlanePoints((points.get(tri.a)), 
+			(points.get(tri.b)),
+			(points.get(tri.c)));	//create plane
 			if(plan.whichSide(tempP) == Side.Positive){
 				System.out.println("Forme "+this+" : wrong side for triangle "+tri.a+tri.b+tri.c);
 				int temp = tri.b;
