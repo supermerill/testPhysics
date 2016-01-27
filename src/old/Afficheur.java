@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
+import jme3Double.Vector3d;
+
 import collision.CollisionUpdater;
 
 import com.jme3.math.FastMath;
@@ -28,22 +30,51 @@ public class Afficheur extends JComponent {
 		final Afficheur view = new Afficheur();
 
 		Forme f = new Forme("TRAP");
-		f.points.add(new Vector3f(-15, -15, -6));
-		f.points.add(new Vector3f(15, -15, -6));
-		f.points.add(new Vector3f(-15, 15, -6));
-		f.points.add(new Vector3f(15, 15, -6));
-		f.points.add(new Vector3f(-3, 3, 6));
+//		f.points.add(new Vector3f(-15, -15, -6));
+//		f.points.add(new Vector3f(15, -15, -6));
+//		f.points.add(new Vector3f(-15, 15, -6));
+//		f.points.add(new Vector3f(15, 15, -6));
+//		f.points.add(new Vector3f(-3, 3, 6));
+//		f.triangles.add(f.new Triangle(0, 1, 2));
+//		f.triangles.add(f.new Triangle(1, 2, 3));
+//		f.triangles.add(f.new Triangle(0, 1, 4));
+//		f.triangles.add(f.new Triangle(1, 2, 4));
+//		f.triangles.add(f.new Triangle(2, 3, 4));
+//		f.triangles.add(f.new Triangle(3, 0, 4));
+//		f.roundBBRayon = 30;
+//		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
+//		f.acceleration.set(0.0000001f,-0.00000981f,0);
+//		//f.vangulaire.set(0,0.001f,0); //1 rotation toute les 5sec
+//		f.lastAccel.set(f.acceleration);
+//		f.physicUpdate = true;
+//		f.landed = false;
+//		f.doNotFaceCenter();
+//		view.formes.add(f);
+		f.points.add(new Vector3f(-100, 20, -50)); //0
+		f.points.add(new Vector3f(-100, 20, 50)); //1
+		f.points.add(new Vector3f(100, 20, 50)); //2
+		f.points.add(new Vector3f(100, 20, -50)); //3
+		f.points.add(new Vector3f(-100, -20, -50)); //4
+		f.points.add(new Vector3f(-100, -20, 50)); //5
+		f.points.add(new Vector3f(100, -20, 50)); //6
+		f.points.add(new Vector3f(100, -20, -50)); //7
+		f.triangles.add(f.new Triangle(1,0,4));
+		f.triangles.add(f.new Triangle(4,5,1));
+		f.triangles.add(f.new Triangle(2,1,5));
+		f.triangles.add(f.new Triangle(5,6,2));
+		f.triangles.add(f.new Triangle(3,0,4));
+		f.triangles.add(f.new Triangle(4,7,3));
 		f.triangles.add(f.new Triangle(0, 1, 2));
-		f.triangles.add(f.new Triangle(1, 2, 3));
-		f.triangles.add(f.new Triangle(0, 1, 4));
-		f.triangles.add(f.new Triangle(1, 2, 4));
-		f.triangles.add(f.new Triangle(2, 3, 4));
-		f.triangles.add(f.new Triangle(3, 0, 4));
-		f.roundBBRayon = 30;
+		f.triangles.add(f.new Triangle(2, 3, 0));
+		f.triangles.add(f.new Triangle(4, 5, 6));
+		f.triangles.add(f.new Triangle(6, 7, 4));
+		f.triangles.add(f.new Triangle(2,6,7));
+		f.triangles.add(f.new Triangle(7,3,2));
+		f.roundBBRayon = 150;
+		f.position.set(-50,0,0);
 		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
-		f.acceleration.set(0.0000001f,-0.00000981f,0);
+		f.acceleration.set(0.000000f,-0.00000981f,0);
 		//f.vangulaire.set(0,0.001f,0); //1 rotation toute les 5sec
-		f.lastAccel.set(f.acceleration);
 		f.physicUpdate = true;
 		f.landed = false;
 		f.doNotFaceCenter();

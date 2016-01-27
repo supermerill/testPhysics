@@ -31,7 +31,7 @@
  * 
  * Modified by merill
  */
-package old;
+package jme3Double;
 
 import com.jme3.export.*;
 import com.jme3.math.FastMath;
@@ -123,6 +123,15 @@ public final class Vector3d implements Savable, Cloneable, java.io.Serializable 
      * @param copy The Vector3d to copy
      */
     public Vector3d(Vector3d copy) {
+        this.set(copy);
+    }
+
+    /**
+     * Constructor instantiates a new <code>Vector3d</code> that is a copy
+     * of the provided vector
+     * @param copy The Vector3d to copy
+     */
+    public Vector3d(Vector3f copy) {
         this.set(copy);
     }
 

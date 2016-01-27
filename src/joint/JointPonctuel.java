@@ -5,7 +5,7 @@ import com.jme3.math.Vector3f;
 
 import old.Forme;
 
-public class JointPonctuel extends Joint {
+public class JointPonctuel /*extends Joint*/ {
 
 	//del these if not used.
 	public Forme f1;
@@ -26,8 +26,8 @@ public class JointPonctuel extends Joint {
 		
 		//compute the sum of all force
 		//TODO remove mass... to create accel or add mass to gravity to have a force
-//		Vector3f grav = new Vector3f(0,-0.00000981f,0);
-		Vector3f grav = new Vector3f(0,-9.81f,0);
+		Vector3f grav = new Vector3f(0,-0.00000981f,0);
+//		Vector3f grav = new Vector3f(0,-9.81f,0);
 		
 		
 		//create the normal force (via a dot)
@@ -62,11 +62,21 @@ public class JointPonctuel extends Joint {
 		//on a l'acceleration en repère global, pour avoir l'acceleration selon les angles x y et z
 		// il faut faire ????
 		//perhaps the other way : point.subtractLocal(f.position.toVec3f())
-		f.aangulaire.add(sumAccel.cross(f.position.toVec3f().subtractLocal(point)));
+		System.out.println("f.aangulaire : "+f.aangulaire);
+		//divide per rayon because of (overly simplified) moment of inertia
+		Vector3f accelAngul = f.position.toVec3f().subtractLocal(point).crossLocal(sumAccel).divideLocal((float)f.roundBBRayon).divideLocal((float)f.roundBBRayon);
+		f.aangulaire.addLocal(accelAngul);
+		Vector3f v1 = f.position.toVec3f().subtractLocal(point);
+		System.out.println("f.position.toVec3f().subtractLocal(point) : "+v1);
+		System.out.println("sum : "+sumAccel);
+		System.out.println("cross : "+sumAccel.cross(v1));
+		System.out.println("crossN : "+sumAccel.cross(normal));
+		System.out.println("f.aangulaire : "+f.aangulaire);
 		f.vangulaire.set(0,0,0);
 		f.vitesse.set(0,0,0);
 		f.acceleration.set(0,0,0);
 		f1.physicUpdate = false;
+		f.posAxeRot.set(f.transfoMatrix.invert().mult(point));
 
 		//PAS bonne methode: on veut une rotation autour de Point!
 		//donc une combinaison de rotation et translation?

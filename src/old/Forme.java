@@ -2,6 +2,8 @@ package old;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import jme3Double.Quaterniond;
+import jme3Double.Vector3d;
 import joint.JointPonctuel;
 
 import collision.CollisionPrediction;
@@ -40,7 +42,8 @@ public class Forme {
 	public Vector3f vitesse = new Vector3f(0,0,0); // en m/ms
 	public Vector3f acceleration = new Vector3f(0,0,0); //en m/ms*ms
 	public Vector3f lastAccel = new Vector3f(0,0,0); //en m/ms*ms
-	
+
+	public Vector3f posAxeRot = new Vector3f(0,0,0); //en m, local
 	public Quaternion pangulaire = new Quaternion(Quaternion.IDENTITY); //en rad
 	public Vector3f vangulaire = new Vector3f(0,0,0); //en rad/ms
 	public Vector3f aangulaire = new Vector3f(0,0,0); //en rad/ms*ms
