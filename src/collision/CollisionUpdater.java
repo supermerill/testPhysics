@@ -52,10 +52,10 @@ public class CollisionUpdater {
 					System.out.println("dist: " + f1.position.distance(f2.position) + " ? "
 							+ (f1.roundBBRayon + f2.roundBBRayon));
 					if (f1.position.distance(f2.position) < f1.roundBBRayon + f2.roundBBRayon) {
-						System.out.println("possible collision ");
+						System.out.println("possible collision "+f1.predictions.get(f2));
 						// check if collision exist (and it's not a joint)
 						CollisionPrediction collider = f1.predictions.get(f2);
-						if (collider == null && !f1.joint.containsKey(f2)) {
+						if (collider == null /*&& !f1.joint.containsKey(f2)*/) {
 							System.out.println("poCreate ssible collision ");
 							// create a collisionPrediction
 							collider = new CollisionPrediction();
@@ -164,36 +164,50 @@ public class CollisionUpdater {
 				// System.out.println("grav(dt/1000)²"+9.81*dt *dt * 0.000001);
 				// System.out.println("grav(dt²/1000)"+0.00981*dt *dt * 0.001);
 				// move linear
-				f.calculF.set(f.vitesse).multLocal(dt);
-				f.position.addLocal(f.calculF);
-				f.calculF.set(f.lastAccel).multLocal(dt * dt);
-				f.position.addLocal(f.calculF);
+
+				if (f.posAxeRot.lengthSquared() == 0)  {
+					f.calculF.set(f.vitesse).multLocal(dt);
+					f.position.addLocal(f.calculF);
+					f.calculF.set(f.lastAccel).multLocal(dt * dt);
+					f.position.addLocal(f.calculF);
+				}
 				// System.out.println("position "+f.position);
 
-//				if (f.posAxeRot.lengthSquared() == 0) {
-					// move angular
-					// Matrix3f matriceRot = new Matrix3f(Matrix3f.IDENTITY);
-					// matriceRot.multCACACPABONLocal(f.vangulaire);
-					// Matrix4f matriceAdd = new Matrix4f();
-					// matriceAdd.setTransform(f.calculF, Vector3f.UNIT_XYZ,
-					// matriceRot);
-					// f.transfoMatrix.addLocal(matriceAdd);
-					// keep quaternion? => it reduce rounding error
-					f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
-					// float angle = f.vangulaire.length();
-					// if (angle > 0.0) // the formulas from the link
-					// {
-					// f.pangulaire.addLocal(new Quaternion(
-					// f.vangulaire.x * FastMath.sin(angle / 2.0f) / angle,
-					// f.vangulaire.y * FastMath.sin(angle / 2.0f) / angle,
-					// f.vangulaire.z * FastMath.sin(angle / 2.0f) / angle,
-					// FastMath.cos(angle / 2.0f)));
-					// }
-					Quaternion previousAngle = new Quaternion(f.pangulaire);
-					Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dt, f.vangulaire);
-					f.pangulaire.multLocal(quaterAdd);
-					f.pangulaire.normalizeLocal();
-					
+				// move angular
+				// Matrix3f matriceRot = new Matrix3f(Matrix3f.IDENTITY);
+				// matriceRot.multCACACPABONLocal(f.vangulaire);
+				// Matrix4f matriceAdd = new Matrix4f();
+				// matriceAdd.setTransform(f.calculF, Vector3f.UNIT_XYZ,
+				// matriceRot);
+				// f.transfoMatrix.addLocal(matriceAdd);
+				// keep quaternion? => it reduce rounding error
+				f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
+				// float angle = f.vangulaire.length();
+				// if (angle > 0.0) // the formulas from the link
+				// {
+				// f.pangulaire.addLocal(new Quaternion(
+				// f.vangulaire.x * FastMath.sin(angle / 2.0f) / angle,
+				// f.vangulaire.y * FastMath.sin(angle / 2.0f) / angle,
+				// f.vangulaire.z * FastMath.sin(angle / 2.0f) / angle,
+				// FastMath.cos(angle / 2.0f)));
+				// }
+				Quaternion previousAngle = new Quaternion(f.pangulaire);
+				Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dt, f.vangulaire);
+				f.pangulaire.multLocal(quaterAdd);
+				f.pangulaire.normalizeLocal();
+
+				
+				// update linear speed
+				f.calculF.set(f.lastAccel).multLocal(dt * 0.5f);
+				f.vitesse.addLocal(f.calculF);
+				f.calculF.set(f.acceleration).multLocal(dt * 0.5f);
+				f.vitesse.addLocal(f.calculF);
+
+				// update angular speed
+				f.calculF.set(f.lastAangulaire).multLocal(dt * 0.5f);
+				f.vangulaire.addLocal(f.calculF);
+				f.calculF.set(f.aangulaire).multLocal(dt * 0.5f);
+				f.vangulaire.addLocal(f.calculF);
 					
 					//more precise!
 					
@@ -266,7 +280,8 @@ public class CollisionUpdater {
 					
 					//f.transfoMatrix.translateVect(newRot.toTranslationVector());
 //					System.out.println("previousPs: "+f.position);
-					f.position.addLocal(newRot.toTranslationVector());
+					Vector3f newSpeed = newRot.toTranslationVector();
+					f.position.addLocal(newSpeed);
 //					System.out.println("correctedPs: "+f.position);
 //					f.transfoMatrix.set(newRot.multLocal(f.transfoMatrix));
 					Vector3f lastPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size()-1)));
@@ -277,23 +292,15 @@ public class CollisionUpdater {
 							f.pangulaire.toRotationMatrix());
 					
 					Vector3f newPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size()-1)));
-					f.position.addLocal(lastPosPoint.subtractLocal(newPosPoint));
-					
+					newSpeed.addLocal(lastPosPoint.subtractLocal(newPosPoint));
+					f.position.addLocal(lastPosPoint);
+
+					// DANGER! implique que il n'y a pas de translation si rottion autour d'un axe!
+					//utile pour le calcul de collision
+					f.vitesse.set(newSpeed);
 				}
 				f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
 					f.pangulaire.toRotationMatrix());
-				
-				// update linear speed
-				f.calculF.set(f.lastAccel).multLocal(dt * 0.5f);
-				f.vitesse.addLocal(f.calculF);
-				f.calculF.set(f.acceleration).multLocal(dt * 0.5f);
-				f.vitesse.addLocal(f.calculF);
-
-				// update angular speed
-				f.calculF.set(f.lastAangulaire).multLocal(dt * 0.5f);
-				f.vangulaire.addLocal(f.calculF);
-				f.calculF.set(f.aangulaire).multLocal(dt * 0.5f);
-				f.vangulaire.addLocal(f.calculF);
 
 			} else {
 				// collision(s), use the nearset one.
@@ -387,8 +394,8 @@ public class CollisionUpdater {
 				joint.f2 = pred.formePoint;
 				joint.idxPointf2 = pred.pointIdx;
 				joint.point = pred.bestP;
-				pred.formePoint.joint.put(pred.formeTri, joint);
-				pred.formeTri.joint.put(pred.formePoint, joint);
+				pred.formePoint.joint.add(joint);
+				pred.formeTri.joint.add(joint);
 
 				// TODO add force from the current velocity ?
 
@@ -491,6 +498,15 @@ public class CollisionUpdater {
 
 		if (pred.bestP.distance(pred.worldP) < velocityTot.length() * dt) {
 			// it collide!
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
+			System.out.println("==================COLLIDE============================");
 
 			// TODO: rotate a small amount to integrate the roation a bit
 			// further
@@ -501,6 +517,8 @@ public class CollisionUpdater {
 			// pred.formeTri.collideAt.put(pred.formePoint, pred);
 			pred.formePoint.collideAt.add(pred);
 			pred.formeTri.collideAt.add(pred);
+			pred.formePoint.predictions.remove(pred.formeTri);
+			pred.formeTri.predictions.remove(pred.formePoint);
 		}
 
 	}
@@ -534,6 +552,26 @@ public class CollisionUpdater {
 		int bestIdxTri = -1;
 		int bestIdxPoint = -1;
 		Ray ray = new Ray();
+
+		ArrayList<Integer> badIdxF1 = new ArrayList<>();
+		for( JointPonctuel j : f1.joint){
+			if(j.f1 == f1){
+				badIdxF1.add(j.idxPointf1);
+			}else{
+				badIdxF1.add(j.idxPointf2);
+			}
+		}
+		ArrayList<Integer> badIdxF2 = new ArrayList<>();
+		for( JointPonctuel j : f2.joint){
+			if(j.f1 == f2){
+				badIdxF2.add(j.idxPointf1);
+			}else{
+				badIdxF2.add(j.idxPointf2);
+			}
+		}
+		System.out.println("badIdxF1 : "+badIdxF1);
+		System.out.println("badIdxF2 : "+badIdxF2);
+		
 		// create new dir
 		Vector3f vitesseF1 = f2.vitesse.negate().addLocal(f1.vitesse);
 		// ray.setDirection(vitesseF1);
@@ -557,6 +595,7 @@ public class CollisionUpdater {
 			rotVelTri.set(formeTri.vangulaire).crossLocal(tempCalc);
 
 			for (int idxPoint = 0; idxPoint < pointeur.points.size(); idxPoint++) {
+				if(badIdxF1.contains(idxPoint)) continue;
 				Vector3f pointLocalPos = pointeur.points.get(idxPoint);
 				pointeur.transfoMatrix.mult(pointLocalPos, tempP);
 				ray.setOrigin(tempP);
@@ -572,7 +611,7 @@ public class CollisionUpdater {
 					if (dist < distMin) {
 						System.out.println("1find a futur intersec on " + tempCalc + "@"
 								+ (tempCalc.distance(tempP) + " in tri " + idxTri));
-						System.out.println("from " + ray.getOrigin() + " with dir " + ray.getDirection());
+						System.out.println("from " + ray.getOrigin() + " (p "+idxPoint+") with dir " + ray.getDirection());
 						System.out.println("vlinear = " + vitesseF1);
 						System.out.println("vAngulTri = " + rotVelTri);
 						System.out.println("vAngulP = "
@@ -618,6 +657,7 @@ public class CollisionUpdater {
 			rotVelTri.set(formeTri.vangulaire).crossLocal(tempCalc);
 
 			for (int idxPoint = 0; idxPoint < pointeur.points.size(); idxPoint++) {
+				if(badIdxF2.contains(idxPoint)) continue;
 				Vector3f pointLocalPos = pointeur.points.get(idxPoint);
 				pointeur.transfoMatrix.mult(pointLocalPos, tempP);
 				ray.setOrigin(tempP);
@@ -637,7 +677,7 @@ public class CollisionUpdater {
 					if (dist < distMin) {
 						System.out.println("2find a BEST futur intersec on " + tempCalc + "@"
 								+ (tempCalc.distance(tempP) + " in tri " + idxTri));
-						System.out.println("from " + ray.getOrigin() + " with dir " + ray.getDirection());
+						System.out.println("from " + ray.getOrigin() + " (p "+idxPoint+") with dir " + ray.getDirection());
 						distMin = dist;
 						bestP.set(tempCalc);
 						bestPointeur = pointeur;

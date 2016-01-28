@@ -5,6 +5,7 @@ import java.util.HashMap;
 import jme3Double.Quaterniond;
 import jme3Double.Vector3d;
 import joint.JointPonctuel;
+import joint.JointPose;
 
 import collision.CollisionPrediction;
 import collision.CollisionUpdater;
@@ -25,8 +26,10 @@ public class Forme {
 	///---------- phys/colision
 	public boolean physicUpdate = false;
 	public HashMap<Forme, CollisionPrediction> predictions = new HashMap<>(2);
-	public HashMap<Forme, JointPonctuel> joint = new HashMap<>(2); //TODO
+	public ArrayList<JointPonctuel> joint = new ArrayList<>(2); //TODO
+	public JointPose jointPose = new JointPose(); //TODO
 	public ArrayList<CollisionPrediction> collideAt = new ArrayList<>(1); //TODO
+	public ArrayList<Vector3f> forces = new ArrayList<>();
 	//-------------
 	
 	
@@ -51,7 +54,6 @@ public class Forme {
 
 	public Matrix4f transfoMatrix = new Matrix4f();
 	
-	public ArrayList<Vector3f> forces = new ArrayList<>();
 	
 
 	//mesh, en coordon�es locale (besoin de passer par transfoMatrix)

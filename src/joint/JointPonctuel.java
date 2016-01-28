@@ -5,7 +5,7 @@ import com.jme3.math.Vector3f;
 
 import old.Forme;
 
-public class JointPonctuel /*extends Joint*/ {
+public class JointPonctuel extends Joint {
 
 	//del these if not used.
 	public Forme f1;
@@ -59,12 +59,10 @@ public class JointPonctuel /*extends Joint*/ {
 		//or 1 rad = 180° = pi*r metres
 		//donc (rad/s²) * pi*r = m/s²
 		
-		//on a l'acceleration en repère global, pour avoir l'acceleration selon les angles x y et z
-		// il faut faire ????
-		//perhaps the other way : point.subtractLocal(f.position.toVec3f())
 		System.out.println("f.aangulaire : "+f.aangulaire);
+		
 		//divide per rayon because of (overly simplified) moment of inertia
-		Vector3f accelAngul = f.position.toVec3f().subtractLocal(point).crossLocal(sumAccel).divideLocal((float)f.roundBBRayon).divideLocal((float)f.roundBBRayon);
+		Vector3f accelAngul = f.position.toVec3f().subtractLocal(point).crossLocal(sumAccel).divideLocal((float)(f.roundBBRayon*f.roundBBRayon));
 		f.aangulaire.addLocal(accelAngul);
 		Vector3f v1 = f.position.toVec3f().subtractLocal(point);
 		System.out.println("f.position.toVec3f().subtractLocal(point) : "+v1);
@@ -75,16 +73,24 @@ public class JointPonctuel /*extends Joint*/ {
 		f.vangulaire.set(0,0,0);
 		f.vitesse.set(0,0,0);
 		f.acceleration.set(0,0,0);
-		f1.physicUpdate = false;
+		//f1.physicUpdate = false;
 		f.posAxeRot.set(f.transfoMatrix.invert().mult(point));
-
-		//PAS bonne methode: on veut une rotation autour de Point!
-		//donc une combinaison de rotation et translation?
-		
-		
-		//and add a linear force that stop all linear mvt.
 		
 		//TODO: with friction, split this force into linear and rotational
+	}
+
+
+	@Override
+	public void updatePosition(long instant, long dt) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void updateForce(long instant, long dt) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

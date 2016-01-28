@@ -6,7 +6,7 @@ import old.Forme;
 
 public abstract class Joint {
 	
-	Forme f;
+	public Forme f;
 	
 	//update force & update pos
 	public void update(long instant, long dt){
