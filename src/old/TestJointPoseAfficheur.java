@@ -81,9 +81,6 @@ public class TestJointPoseAfficheur extends JComponent {
 		// f.jointPose.points.add(new Vector3f(100,-30,-100));
 		// f.jointPose.points.add(new Vector3f(-100,-30,-100));
 
-		 f.jointPose.points.add(new Vector3f(40,0,-30));
-		 f.jointPose.points.add(new Vector3f(-30,0,40));
-		 f.jointPose.points.add(new Vector3f(-30,0,-30));
 //		 f.jointPose.points.add(new Vector3f(40,0,-30));
 //		 f.jointPose.points.add(new Vector3f(-30,0,40));
 //		 f.jointPose.points.add(new Vector3f(-30,0,-30));
@@ -97,6 +94,7 @@ public class TestJointPoseAfficheur extends JComponent {
 //		f.jointPose.points.add(new Vector3f(-3, 0, 30));
 //		f.jointPose.points.add(new Vector3f(-30, 0, 0));
 //		f.jointPose.points.add(new Vector3f(-20, 0, 15));
+		
 
 //		f.jointPose.points.add(new Vector3f(-10, 0, -30));
 //		f.jointPose.points.add(new Vector3f(-30, 0, -30));
@@ -129,10 +127,10 @@ public class TestJointPoseAfficheur extends JComponent {
 //f.jointPose.points.add(new Vector3f(-8.480434f, 0, 9.62236f));
 //f.jointPose.points.add(new Vector3f(33.12845f, 0, -25.385738f));
 
-//		Random rand = new Random();
-//		for(int i=0;i<5;i++){
-//			f.jointPose.points.add(new Vector3f((rand.nextFloat()*100)-50, 0, (rand.nextFloat()*100)-50));
-//		}
+		Random rand = new Random();
+		for(int i=0;i<5;i++){
+			f.jointPose.points.add(new Vector3f((rand.nextFloat()*100)-25, 0, (rand.nextFloat()*100)-25));
+		}
 		
 //		f.jointPose.points.add(new Vector3f(-1.3086681f, 0, -3.8920822f));
 //		f.jointPose.points.add(new Vector3f(-8.117588f, 0, 23.260162f));

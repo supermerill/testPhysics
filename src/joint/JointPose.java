@@ -20,8 +20,6 @@ public class JointPose extends Joint {
 																// affichage
 	public Vector3f forceResultante = new Vector3f();
 	public Vector3f pointPivot = new Vector3f();
-	
-
 
 	public Vector3f point1 = new Vector3f();
 	public Vector3f point2 = new Vector3f();
@@ -118,7 +116,7 @@ public class JointPose extends Joint {
 			vect.normalize();
 			// vect = Vector3f.UNIT_XYZ.divide(vect);
 			if (vect.dot(sumForcesN) < 0) {
-//				listVector.add(vect);
+				// listVector.add(vect);
 				listPoint.add(pointOfContact);
 			}
 		}
@@ -187,9 +185,9 @@ public class JointPose extends Joint {
 			}
 			normaleProjPlan.normalizeLocal();
 			normale2Draw3 = normaleProjPlan;
+			System.out.println("normaleProjPlan=" + normaleProjPlan);
 
-			
-			//pick 1 point (from first part of bad algo?)
+			// pick 1 point (from first part of bad algo?)
 			// find the first point in the back of this plane
 			int idxNear = 0;
 			System.out.println("check point  = " + listPoint.get(0) + " @ " + normaleProjPlan.dot(listPoint.get(0)));
@@ -204,141 +202,190 @@ public class JointPose extends Joint {
 					idxNear = idx;
 				}
 			}
-			
-			//place at left or right var if( if left of o or right)
+
+			// place at left or right var if( if left of o or right)
 			Vector3f solo = listPoint.get(idxNear);
 			Vector3f right = null;
 			Vector3f left = null;
 			Vector3f previousRight = null;
 			Vector3f previousLeft = null;
 			Vector3f previousSolo = null;
-			
+			Vector3f dirRight = new Vector3f();
+			Vector3f dirCheck = new Vector3f();
+
 			boolean pIsRight = sumForcesN.cross(normaleProjPlan).dot(solo) >= 0;
-			if(pIsRight){
+			System.out.println("Dit right: "+sumForcesN.cross(normaleProjPlan));
+			System.out.println("is Right? "+pIsRight);
+			if (pIsRight) {
 				right = solo;
-			}else{
+			} else {
 				left = solo;
 			}
 
-			
-			
-			//do
+			// init
+
+			// if(right == null || left == null){
+			// System.out.println("solo dir "+right != null+" from "+solo);
+			// if (right != null) {
+			// // dirRight = solo.cross(sumForcesN);
+			// bestRight =
+			// } else {
+			// // dirRight = sumForcesN.cross(solo).mult(-1);
+			// }
+			dirRight = sumForcesN.cross(solo);
+			System.out.println("solo: " + solo);
+			System.out.println("sumForcesN: " + sumForcesN);
+			System.out.println("dirRight: " + dirRight);
+			// }
+			// else{
+			// dirRight = right.subtract(left);
+			// System.out.println("duo dir right : "+dirRight);
+			// }
+			dirCheck = sumForcesN.cross(dirRight).normalizeLocal();
+
+			// do
 			boolean equilibre = false;
-			do{
+			do {
 				previousRight = right;
 				previousLeft = left;
 				previousSolo = solo;
 				System.out.println("begin boucl!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ");
-				System.out.println("solo "+solo);
-				System.out.println("right "+right);
-				System.out.println("left "+left);
-				Vector3f dirRight = new Vector3f();
-				Vector3f dirCheck = new Vector3f();
+				System.out.println("solo " + solo);
+				System.out.println("right " + right);
+				System.out.println("left " + left);
 				float bestRight = -Float.MAX_VALUE;
 				float bestLeft = -Float.MAX_VALUE;
-				//check points in dir of O
-				if(right == null || left == null){
-					System.out.println("solo dir "+right != null+" from "+solo);
-//					if (right != null) {
-////						dirRight = solo.cross(sumForcesN);
-//						bestRight = 
-//					} else {
-////						dirRight = sumForcesN.cross(solo).mult(-1);
-//					}
-					dirRight = solo.cross(sumForcesN);
-					System.out.println("dirRight: "+dirRight);
-				}else{
-					dirRight = right.subtract(left);
-					System.out.println("duo dir right : "+dirRight);
-				}
-				dirCheck = dirRight.crossLocal(sumForcesN).normalizeLocal();
+				// check points in dir of O
 				if (right != null) {
 					bestRight = dirCheck.dot(right);
-				} else {
+				}
+				if (left != null) {
 					bestLeft = dirCheck.dot(left);
 				}
-				System.out.println("dir to check : "+dirCheck);
-				for (idx = 1; idx < listPoint.size(); idx++) {
+				System.out.println("bestRight : " + bestRight);
+				System.out.println("bestLeft : " + bestLeft);
+				System.out.println("dir to right : " + dirRight);
+				System.out.println("dir to check : " + dirCheck);
+				for (idx = 0; idx < listPoint.size(); idx++) {
 					Vector3f aPoint = listPoint.get(idx);
-					System.out.println("check point  = " + listPoint.get(idx));
-					//check what side
+					if (aPoint == right || aPoint == left)
+						continue;
+					// check what side
 					float side = dirRight.dot(aPoint);
 					float dist = dirCheck.dot(aPoint);
-					if(side>=0){
-						//if better point at right, replace right
-						if(dist>bestRight){
+					System.out
+							.println("check point  = " + listPoint.get(idx) + ", side = " + side + ", dist = " + dist);
+					if (side >= 0) {
+						// if better point at right, replace right
+						if (dist > bestRight) {
+							System.out.println("new right!");
 							bestRight = dist;
 							right = aPoint;
 							solo = aPoint;
 						}
-					}else{
-						//if better point at left, replace left
-						if(dist>bestLeft){
+					} else {
+						// if better point at left, replace left
+						if (dist > bestLeft) {
+							System.out.println("new left!");
 							bestLeft = dist;
 							left = aPoint;
 							solo = aPoint;
 						}
 					}
 				}
-				System.out.println("new right: "+right);
-				System.out.println("new left: "+left);
-				//if right or left is just plain better solo, use it solo
-				if(right != null && left !=null){
-					if(right.cross(sumForcesN).cross(sumForcesN).dot(left)<0){
+				System.out.println("new right: " + right);
+				System.out.println("new left: " + left);
+				// if right or left is just plain better solo, use it solo
+				if (right != null && left != null) {
+					System.out.println("right dir: " + sumForcesN.cross(sumForcesN.cross(right)));
+					System.out.println("right dir dot left: " + sumForcesN.cross(sumForcesN.cross(right)).dot(left.subtract(right)));
+					if (sumForcesN.cross(sumForcesN.cross(right)).dot(left.subtract(right)) < 0) {
 						System.out.println("right better than left");
-						System.out.println("right dir: "+right.cross(sumForcesN).cross(sumForcesN));
-						System.out.println("right dir dot left: "+right.cross(sumForcesN).cross(sumForcesN).dot(left));
 						left = null;
 						solo = right;
-					}
-					if(left.cross(sumForcesN).cross(sumForcesN).dot(right)<0){
-						System.out.println("left better than right");
-						System.out.println("left dir: "+left.cross(sumForcesN).cross(sumForcesN));
-						System.out.println("left dir dot left: "+left.cross(sumForcesN).cross(sumForcesN).dot(right));
-						right = null;
-						solo = left;
+					} else {
+						System.out.println("left dir: " + sumForcesN.cross(sumForcesN.cross(left)));
+						System.out.println("left dir dot left: " + sumForcesN.cross(sumForcesN.cross(left)).dot(right.subtract(left)));
+						if (sumForcesN.cross(sumForcesN.cross(left)).dot(right.subtract(left)) < 0) {
+							System.out.println("left better than right");
+							right = null;
+							solo = left;
+						}
 					}
 				}
-				
+
 				// while 0 is behind and you changed right or left
-				System.out.println("verify pos of O (via this dir: "+normaleProjPlan+")");
-				if(right != null && left !=null){
-					System.out.println("middle of duet : "+right.add(left).multLocal(0.5f)); //TODOafter use this instead of right+left?
-					System.out.println("verify if solo is behind O : "+normaleProjPlan.dot(right.add(left).multLocal(0.5f)));
-					equilibre = normaleProjPlan.dot(right.add(left).multLocal(0.5f)) < 0;
-				}else{
-					System.out.println("verify if solo is behind O : "+normaleProjPlan.dot(solo));
+				System.out.println("verify pos of O (via this dir: " + normaleProjPlan + ")");
+				if (right != null && left != null) {
+					dirRight = right.subtract(left);
+					System.out.println("new dirRight : "+dirRight);
+					dirCheck = sumForcesN.cross(dirRight).normalizeLocal();
+					System.out.println("new dircheck : "+dirCheck);
+//					solo = right.add(left).multLocal(0.5f);
+					System.out.println("verify if vector is not in the right side of O : " + 
+							normaleProjPlan.dot(dirCheck));
+					System.out.println("verify if we have not dépassé O : " + 
+							dirCheck.dot(right.add(left).multLocal(0.5f)));
+					equilibre = normaleProjPlan.dot(dirCheck) > 0 || dirCheck.dot(right.add(left).multLocal(0.5f)) > 0;
+					if (!equilibre) {
+						// check no points are in front of the 'line'
+						for (idx = 0; idx < listPoint.size(); idx++) {
+							Vector3f aPoint = listPoint.get(idx);
+							if (aPoint == right || aPoint == left)
+								continue;
+							System.out.println("check point if in front of " + dirCheck + "  : " + aPoint);
+							if (aPoint.dot(dirCheck) > 0) {
+								System.out.println("find!");
+								equilibre = true;
+							}
+						}
+					}
+				} else {
+					System.out.println("verify if solo is behind O : " + normaleProjPlan.dot(solo));
 					equilibre = normaleProjPlan.dot(solo) < 0;
+					if (!equilibre) {
+						dirRight = sumForcesN.cross(solo);
+						dirCheck = sumForcesN.cross(dirRight).normalizeLocal();
+						for (idx = 0; idx < listPoint.size(); idx++) {
+							Vector3f aPoint = listPoint.get(idx);
+							if (aPoint == right || aPoint == left)
+								continue;
+							System.out.println("check point if in front of " + dirCheck + "  : " + aPoint);
+							if (aPoint.dot(dirCheck) > 0) {
+								System.out.println("find!");
+								equilibre = true;
+							}
+						}
+					}
 				}
-				
-			}while(!equilibre && 
-					previousRight == right &&
-					previousLeft == left &&
-					previousSolo == solo);
-			System.out.println("boucle finie --------------------");
-			
-			if(equilibre){
-				//if O is behind => equi
+
+				System.out.println("boucle test " + equilibre + " && " + previousRight +"==" +right
+						+ " && " + previousLeft +"=="+ left + " && " + previousSolo +"==" +solo);
+			} while (!equilibre && !(previousRight == right && previousLeft == left && previousSolo == solo));
+			System.out.println("boucle finie -------------------- " + equilibre + " && " + (previousRight == right)
+					+ " && " + (previousLeft == left) + " && " + (previousSolo == solo));
+
+			if (equilibre) {
+				// if O is behind => equi
 				System.out.println("EQUILIBRE");
 				point1 = point2 = Vector3f.ZERO;
-			}else if(right == null || left == null){
-				//if only 1 point => solo rot
-				System.out.println("ROT 1P "+solo);
+			} else if (right == null || left == null) {
+				// if only 1 point => solo rot
+				System.out.println("ROT 1P " + solo);
 				point1 = point2 = solo;
-			}else{
-				//else rot 2P
-				System.out.println("ROT 2P "+right+" , "+left);
+			} else {
+				// else rot 2P
+				System.out.println("ROT 2P " + right + " , " + left);
 				point1 = right;
 				point2 = left;
-				
+
 			}
-			
+
 		}
-		
-		
+
 	}
 
-	//maybe unrecoverable...
+	// maybe unrecoverable...
 	public void updateForceTooBad(long instant, long dt) {
 		// gather forces
 
@@ -622,48 +669,63 @@ public class JointPose extends Joint {
 				// check if one point is not sufficient
 				// FIXME
 				if (idxNear2 >= 0) {
-//					System.out.println("idxSecond : " + idxNear2 + " : " + listPoint.get(idxNear2));
-//
-//					Vector3f normaleCheckP2 = sumForces.cross(listVector.get(idxNear)).crossLocal(sumForces)
-//							.normalizeLocal();
-//					if (normaleCheckP2.dot(listVector.get(idxNear)) < 0) {
-//						System.out.println("correct normaleCheckP2 dir");
-//						normaleCheckP2.multLocal(-1);
-//					}
-//					System.out.println("Check P2 : " + listPoint.get(idxNear2) + " -> "
-//							+ listPoint.get(idxNear2).subtract(listPoint.get(idxNear)) + " dot(" + normaleCheckP2
-//							+ ") => " + normaleCheckP2.dot(listPoint.get(idxNear2).subtract(listPoint.get(idxNear))));
-//					if (normaleCheckP2.dot(listPoint.get(idxNear2).subtract(listPoint.get(idxNear))) > 0) {
-//						System.out.println("P2 ok");
-//
-//						Vector3f normaleCheckP1 = sumForces.cross(listVector.get(idxNear2)).crossLocal(sumForces)
-//								.normalizeLocal();
-//						if (normaleCheckP1.dot(listVector.get(idxNear2)) < 0) {
-//							System.out.println("correct normaleCheckP1 dir");
-//							normaleCheckP1.multLocal(-1);
-//						}
-//						System.out.println("Check P1 : " + listPoint.get(idxNear) + " -> "
-//								+ listPoint.get(idxNear).subtract(listPoint.get(idxNear2)) + " dot(" + normaleCheckP1
-//								+ ") => "
-//								+ normaleCheckP2.dot(listPoint.get(idxNear).subtract(listPoint.get(idxNear2))));
-//						if (normaleCheckP1.dot(listPoint.get(idxNear).subtract(listPoint.get(idxNear2))) > 0) {
-//							System.out.println("P1 ok");
-//						} else {
-//							System.out.println("P1 not in front engough!");
-//							idxNear = idxNear2;
-//							idxNear2 = -1;
-//							point1 = listPoint.get(idxNear);
-//							normalePlanP1.set(normalePlan2);
-//						}
-//
-//					} else {
-//						System.out.println("P2 not in front engough!");
-//						idxNear2 = -1;
-//						point2 = point1.mult(1);
-//					}
+					// System.out.println("idxSecond : " + idxNear2 + " : " +
+					// listPoint.get(idxNear2));
+					//
+					// Vector3f normaleCheckP2 =
+					// sumForces.cross(listVector.get(idxNear)).crossLocal(sumForces)
+					// .normalizeLocal();
+					// if (normaleCheckP2.dot(listVector.get(idxNear)) < 0) {
+					// System.out.println("correct normaleCheckP2 dir");
+					// normaleCheckP2.multLocal(-1);
+					// }
+					// System.out.println("Check P2 : " +
+					// listPoint.get(idxNear2) + " -> "
+					// +
+					// listPoint.get(idxNear2).subtract(listPoint.get(idxNear))
+					// + " dot(" + normaleCheckP2
+					// + ") => " +
+					// normaleCheckP2.dot(listPoint.get(idxNear2).subtract(listPoint.get(idxNear))));
+					// if
+					// (normaleCheckP2.dot(listPoint.get(idxNear2).subtract(listPoint.get(idxNear)))
+					// > 0) {
+					// System.out.println("P2 ok");
+					//
+					// Vector3f normaleCheckP1 =
+					// sumForces.cross(listVector.get(idxNear2)).crossLocal(sumForces)
+					// .normalizeLocal();
+					// if (normaleCheckP1.dot(listVector.get(idxNear2)) < 0) {
+					// System.out.println("correct normaleCheckP1 dir");
+					// normaleCheckP1.multLocal(-1);
+					// }
+					// System.out.println("Check P1 : " + listPoint.get(idxNear)
+					// + " -> "
+					// +
+					// listPoint.get(idxNear).subtract(listPoint.get(idxNear2))
+					// + " dot(" + normaleCheckP1
+					// + ") => "
+					// +
+					// normaleCheckP2.dot(listPoint.get(idxNear).subtract(listPoint.get(idxNear2))));
+					// if
+					// (normaleCheckP1.dot(listPoint.get(idxNear).subtract(listPoint.get(idxNear2)))
+					// > 0) {
+					// System.out.println("P1 ok");
+					// } else {
+					// System.out.println("P1 not in front engough!");
+					// idxNear = idxNear2;
+					// idxNear2 = -1;
+					// point1 = listPoint.get(idxNear);
+					// normalePlanP1.set(normalePlan2);
+					// }
+					//
+					// } else {
+					// System.out.println("P2 not in front engough!");
+					// idxNear2 = -1;
+					// point2 = point1.mult(1);
+					// }
 				}
 
-				System.out.println(previousP1+" =?= "+point1);
+				System.out.println(previousP1 + " =?= " + point1);
 			} while (!point1.equals(previousP1));
 
 			// case with 2 points
