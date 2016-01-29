@@ -61,11 +61,11 @@ public class TestJointPoseAfficheur extends JComponent {
 		f.landed = false;
 		f.doNotFaceCenter();
 
-		// f.jointPose.points.add(new Vector3f(0,-30,0));
-		// f.jointPose.points.add(new Vector3f(30,-30,0));
-		// f.jointPose.points.add(new Vector3f(-30,-30,0));
-		// f.jointPose.points.add(new Vector3f(0,-30,30));
-		// f.jointPose.points.add(new Vector3f(0,-30,-30));
+//		 f.jointPose.points.add(new Vector3f(0,-30,0));
+//		 f.jointPose.points.add(new Vector3f(30,-30,0));
+//		 f.jointPose.points.add(new Vector3f(-30,-30,0));
+//		 f.jointPose.points.add(new Vector3f(0,-30,30));
+//		 f.jointPose.points.add(new Vector3f(0,-30,-30));
 
 		// f.jointPose.points.add(new Vector3f(30,-20,30));
 		// f.jointPose.points.add(new Vector3f(30,-20,-30));
@@ -81,12 +81,12 @@ public class TestJointPoseAfficheur extends JComponent {
 		// f.jointPose.points.add(new Vector3f(100,-30,-100));
 		// f.jointPose.points.add(new Vector3f(-100,-30,-100));
 
-		// f.jointPose.points.add(new Vector3f(40,0,-30));
-		// f.jointPose.points.add(new Vector3f(-30,0,40));
-		// f.jointPose.points.add(new Vector3f(-30,0,-30));
-		// f.jointPose.points.add(new Vector3f(40,0,-30));
-		// f.jointPose.points.add(new Vector3f(-30,0,40));
-		// f.jointPose.points.add(new Vector3f(-30,0,-30));
+		 f.jointPose.points.add(new Vector3f(40,0,-30));
+		 f.jointPose.points.add(new Vector3f(-30,0,40));
+		 f.jointPose.points.add(new Vector3f(-30,0,-30));
+//		 f.jointPose.points.add(new Vector3f(40,0,-30));
+//		 f.jointPose.points.add(new Vector3f(-30,0,40));
+//		 f.jointPose.points.add(new Vector3f(-30,0,-30));
 
 		// f.jointPose.points.add(new Vector3f(-10,0,0));
 		// f.jointPose.points.add(new Vector3f(100,0,0));
@@ -123,11 +123,11 @@ public class TestJointPoseAfficheur extends JComponent {
 //		f.jointPose.points.add(new Vector3f(-6.6198025f, 0, 16.227226f));
 //		f.jointPose.points.add(new Vector3f(8.292912f, 0, -11.612946f));
 
-f.jointPose.points.add(new Vector3f(29.061073f, 0, 16.655365f));
-f.jointPose.points.add(new Vector3f(22.77488f, 0, -17.025723f));
-f.jointPose.points.add(new Vector3f(32.93412f, 0, 47.316376f));
-f.jointPose.points.add(new Vector3f(-8.480434f, 0, 9.62236f));
-f.jointPose.points.add(new Vector3f(33.12845f, 0, -25.385738f));
+//f.jointPose.points.add(new Vector3f(29.061073f, 0, 16.655365f));
+//f.jointPose.points.add(new Vector3f(22.77488f, 0, -17.025723f));
+//f.jointPose.points.add(new Vector3f(32.93412f, 0, 47.316376f));
+//f.jointPose.points.add(new Vector3f(-8.480434f, 0, 9.62236f));
+//f.jointPose.points.add(new Vector3f(33.12845f, 0, -25.385738f));
 
 //		Random rand = new Random();
 //		for(int i=0;i<5;i++){
