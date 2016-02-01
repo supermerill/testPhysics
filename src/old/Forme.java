@@ -2,15 +2,11 @@ package old;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import jme3Double.Quaterniond;
 import jme3Double.Vector3d;
-import joint.JointPonctuel;
-import joint.JointPose;
-
+import joint.Joint;
+import joint.JointFreeFlight;
 import collision.CollisionPrediction;
-import collision.CollisionUpdater;
 
-import com.jme3.math.FastMath;
 import com.jme3.math.Matrix4f;
 import com.jme3.math.Plane;
 import com.jme3.math.Plane.Side;
@@ -26,8 +22,9 @@ public class Forme {
 	///---------- phys/colision
 	public boolean physicUpdate = false;
 	public HashMap<Forme, CollisionPrediction> predictions = new HashMap<>(2);
-	public ArrayList<JointPonctuel> joint = new ArrayList<>(2); //TODO
-	public JointPose jointPose = new JointPose(); //TODO
+//	public ArrayList<JointPonctuel> joint = new ArrayList<>(2); //TODO
+//	public JointPose jointPose = new JointPose(); //TODO
+	public Joint joint = new JointFreeFlight();
 	public ArrayList<CollisionPrediction> collideAt = new ArrayList<>(1); //TODO
 	public ArrayList<Vector3f> forces = new ArrayList<>();
 	//-------------
@@ -46,7 +43,7 @@ public class Forme {
 	public Vector3f acceleration = new Vector3f(0,0,0); //en m/ms*ms
 	public Vector3f lastAccel = new Vector3f(0,0,0); //en m/ms*ms
 
-	public Vector3f posAxeRot = new Vector3f(0,0,0); //en m, local
+	public Vector3f posAxeRot = new Vector3f(0,0,0); //en m, local?
 	public Quaternion pangulaire = new Quaternion(Quaternion.IDENTITY); //en rad
 	public Vector3f vangulaire = new Vector3f(0,0,0); //en rad/ms
 	public Vector3f aangulaire = new Vector3f(0,0,0); //en rad/ms*ms
