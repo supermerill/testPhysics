@@ -73,7 +73,8 @@ public class Afficheur extends JComponent {
 		f.roundBBRayon = 150;
 		f.position.set(-50,0,0);
 		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
-		f.acceleration.set(0.000000f,-0.00000981f,0);
+		f.forces.add(new Vector3f(0.000000f,-9.81f,0).mult((float)f.mass));
+//		f.acceleration.set(0.000000f,-0.00000981f,0);
 		//f.vangulaire.set(0,0.001f,0); //1 rotation toute les 5sec
 		f.physicUpdate = true;
 		f.landed = false;
@@ -177,9 +178,13 @@ public class Afficheur extends JComponent {
 					System.out.println("NEW TURN ---------------------------------------------------------------------------------");
 					//calculate
 					for(Forme f : view.formes){
+						System.out.println("forme "+f +"@"+f.position);
+						//update forces & accels vector (sometimes even speed ones)
+						f.joint.update(currentMs, diff);
 //						f.update(5*diff/2);
 					}
 					
+					//check collision & update positions
 					updater.updateCollision(currentMs, diff);
 
 //					for(Forme f : view.formes){
@@ -215,7 +220,7 @@ public class Afficheur extends JComponent {
 //					}
 					
 					//apply gravity
-					Vector3d force = new Vector3d(0,0,0);
+					Vector3f force = new Vector3f(0,0,0);
 					if(view.keyPress == KeyEvent.VK_Q){
 						force.set(20000,20000,0);
 					}
@@ -226,7 +231,10 @@ public class Afficheur extends JComponent {
 						force.set(0,200000,0);
 					}
 					for(Forme f : view.formes){
-						if(!f.landed) f.applyForce(force);
+						while(f.forces.size()>1){
+							f.forces.remove(f.forces.size()-1);
+						}
+						if(!f.landed) f.forces.add(force);
 					}
 					previousMs = currentMs;
 				}

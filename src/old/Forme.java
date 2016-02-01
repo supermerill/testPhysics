@@ -24,7 +24,7 @@ public class Forme {
 	public HashMap<Forme, CollisionPrediction> predictions = new HashMap<>(2);
 //	public ArrayList<JointPonctuel> joint = new ArrayList<>(2); //TODO
 //	public JointPose jointPose = new JointPose(); //TODO
-	public Joint joint = new JointFreeFlight();
+	public Joint joint = new JointFreeFlight(this);
 	public ArrayList<CollisionPrediction> collideAt = new ArrayList<>(1); //TODO
 	public ArrayList<Vector3f> forces = new ArrayList<>();
 	//-------------
@@ -43,7 +43,7 @@ public class Forme {
 	public Vector3f acceleration = new Vector3f(0,0,0); //en m/ms*ms
 	public Vector3f lastAccel = new Vector3f(0,0,0); //en m/ms*ms
 
-	public Vector3f posAxeRot = new Vector3f(0,0,0); //en m, local?
+//	public Vector3f posAxeRot = new Vector3f(0,0,0); //en m, local?
 	public Quaternion pangulaire = new Quaternion(Quaternion.IDENTITY); //en rad
 	public Vector3f vangulaire = new Vector3f(0,0,0); //en rad/ms
 	public Vector3f aangulaire = new Vector3f(0,0,0); //en rad/ms*ms
@@ -53,12 +53,13 @@ public class Forme {
 	
 	
 
-	//mesh, en coordon�es locale (besoin de passer par transfoMatrix)
+	//mesh, en coordonees locale (besoin de passer par transfoMatrix)
 	public ArrayList<Vector3f> points = new ArrayList<>();
 	public ArrayList<Triangle> triangles = new ArrayList<>();
+	
+	//temp vars (remove this alter)
 	Vector3d calcul1 = new Vector3d();
 	public Vector3f calculF = new Vector3f();
-
 	
 	public class Triangle{
 		public Triangle(int i, int j, int k) {
@@ -72,53 +73,6 @@ public class Forme {
 		public int a,b,c;
 		public float bbRound; // roundbounding box
 		public String toString(){return a+","+b+","+c;}
-	}
-	
-	public void update(int ms){
-		
-		//update pos
-		System.out.println("posBefore: "+position);
-		System.out.println("vitBefore: "+vitesse);
-		calculF.set(vitesse).multLocal(ms/* *0.001f*/);
-		position.addLocal(calcul1.set(calculF));
-		calculF.set(lastAccel).multLocal(ms*ms/* *0.000001f*/);
-		position.addLocal(calcul1.set(calculF));
-//		position.x += (float)( (((double)vitesse.x)*ms)/1000 + (((((double)acceleration.x)*ms)/1000)*ms)/1000 );
-//		position.y += (float)( (((double)vitesse.y)*ms)/1000 + (((((double)acceleration.y)*ms)/1000)*ms)/1000 );
-//		position.z += (float)( (((double)vitesse.z)*ms)/1000 + (((((double)acceleration.z)*ms)/1000)*ms)/1000 );
-		
-		//update vitesse
-		calculF.set(lastAccel).multLocal(ms/* *0.0005f*/ *0.5f);
-		vitesse.addLocal(calculF);
-		calculF.set(acceleration).multLocal(ms* /* 0.0005f*/ 0.5f);
-		vitesse.addLocal(calculF);
-//		vitesse.x += (float)( (((double)lastAccel.x)*ms)/2000 + (((double)acceleration.x)*ms)/2000 );
-//		vitesse.y += (float)( (((double)lastAccel.y)*ms)/2000 + (((double)acceleration.y)*ms)/2000 );
-//		vitesse.z += (float)( (((double)lastAccel.z)*ms)/2000 + (((double)acceleration.z)*ms)/2000 );
-		
-		Vector3f temp = lastAccel;
-		lastAccel = acceleration;
-		acceleration = temp;
-		//acceleration.set(0,0,0);
-		transfoMatrix.setTransform(position.toVec3f(), Vector3f.UNIT_XYZ, pangulaire.toRotationMatrix());
-		//apply gravity?
-		if(!landed){
-			acceleration.addLocal(calculF.set(0, /* -9.81f*/ -0.00981f, 0));
-			//System.out.println("not landed");
-		}
-//		System.out.println("vitesse:"+vitesse);
-	}
-	//apply a force in g*m/s2
-	public void applyForce(Vector3d force) {
-//		System.out.println("force = "+force);
-		//transform
-		force.toVec3fLocal(calculF).divideLocal((float) mass);
-//		transfoMatrix.invert().multNormal(calculF, calculF);
-//		System.out.println("force transformée = "+calculF);
-		//add to accel
-//		System.out.println("force transformée = "+calcul1.set(calculF));
-		acceleration.addLocal(calculF);
-//		System.out.println("now accel = "+acceleration);
 	}
 	
 	public CollisionMobileSol checkCollision(Forme f2){

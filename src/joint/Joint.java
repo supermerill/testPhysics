@@ -1,5 +1,8 @@
 package joint;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import com.jme3.math.Vector3f;
 
 import old.Forme;
@@ -7,6 +10,10 @@ import old.Forme;
 public abstract class Joint {
 	
 	public Forme f;
+	
+	Joint(Forme f){
+		this.f = f;
+	}
 	
 	//update force & update pos
 	public void update(long instant, long dt){
@@ -25,6 +32,12 @@ public abstract class Joint {
 	//TODO? energy in kg*m/s²
 	public void receiveEnergy(float force, Vector3f position, Vector3f direction){
 		
+	}
+	
+	public abstract void addCollisionPoint(Vector3f pointCollision, int idx);
+
+	public Collection<Integer> getIdx() {
+		return new ArrayList<>(0);
 	}
 	
 }

@@ -1,70 +1,148 @@
 package joint;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import old.Forme;
 
-import com.jme3.math.Plane;
+import com.jme3.math.Matrix4f;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
-public class JointPose extends Joint {
+public class JointPose extends JointRotation {
 
 	// HashMap<Integer, JointPose> linkToOtherForme = new HashMap<>();
+	boolean needToRecompute = true;
 
-	// the point-joint (s)
+	// the point-joint (s) (in world coordinates)
 	public ArrayList<Vector3f> points = new ArrayList<>();
-	public ArrayList<Vector3f> normales = new ArrayList<>(); // pour tester :
-																// affichage
-//	public Vector3f forceResultante = new Vector3f();
-//	public Vector3f pointPivot = new Vector3f();
-	public Vector3f rotationForceVector = new Vector3f();
+	public ArrayList<Integer> pointsIdx = new ArrayList<>();
 
-	//TODOAFTER: remove debug vars
+	// public Vector3f forceResultante = new Vector3f();
+//	public Vector3f pointPivot = new Vector3f(); //super.pointRotation
+	public Vector3f rotationForceVector = new Vector3f();
+	public int idxL = -1, idxR = -1;
+ 
+	// TODOAFTER: remove debug vars
 	public Vector3f point1 = new Vector3f();
 	public Vector3f point2 = new Vector3f();
 	public Vector3f normale2Draw = new Vector3f();
 	public Vector3f normale2Draw2 = new Vector3f();
 	public Vector3f normale2Draw3 = new Vector3f();
+	public ArrayList<Vector3f> normales = new ArrayList<>(); // pour tester :
+																// affichage
+
+	public JointPose(Forme f) {
+		super(f);
+	}
 
 	@Override
 	public void updatePosition(long instant, long dt) {
-		
-		 //divide per rayon because of (overly simplified) moment of inertia
-		 Vector3f accelAngul = f.position.toVec3f().subtractLocal(point).crossLocal(sumAccel).divideLocal((float)(f.roundBBRayon*f.roundBBRayon));
-		 f.aangulaire.addLocal(accelAngul);
-		 Vector3f v1 = f.position.toVec3f().subtractLocal(point);
-		 System.out.println("f.position.toVec3f().subtractLocal(point) : "+v1);
-		 System.out.println("sum : "+sumAccel);
-		 System.out.println("cross : "+sumAccel.cross(v1));
-		 System.out.println("crossN : "+sumAccel.cross(normal));
-		 System.out.println("f.aangulaire : "+f.aangulaire);
-		 f.vangulaire.set(0,0,0);
-		 f.vitesse.set(0,0,0);
-		 f.acceleration.set(0,0,0);
-		 //f1.physicUpdate = false;
-		 f.posAxeRot.set(f.transfoMatrix.invert().mult(point));
+//		// move forme to rot pos
+//		// MAYTODO: find a better way with rot mat
+//		// TODOAFTER: cleanup this : you just need to set angular accel (done at
+//		// calculforces)
+//		// and linear speed (with no accel)
+//		// , and maybe a reajust to keep it on the axle (but i think it can be
+//		// done with the speed thing)
+//		// http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/index.htm
+//
+//		// set linear vit from vang
+//		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dt, f.vangulaire);
+//
+//		Matrix4f newRot = new Matrix4f();
+//		newRot.setTransform(Vector3f.ZERO, Vector3f.UNIT_XYZ, quaterAdd.toRotationMatrix());
+//
+//		Matrix4f preciseTrsf = new Matrix4f();
+//		preciseTrsf.setTransform(f.position.toVec3f(), Vector3f.UNIT_XYZ, f.pangulaire.toRotationMatrix());
+//
+//		Vector3f transl = new Vector3f(f.transfoMatrix.invert().mult(pointPivot)).mult(1);
+//		// new Matrix4d(f.transfoMatrix).multNormal(transl, transl);
+//		preciseTrsf.multNormal(transl, transl);
+//		newRot.m03 = transl.x - newRot.m00 * transl.x - newRot.m01 * transl.y - newRot.m02 * transl.z;
+//		newRot.m13 = transl.y - newRot.m10 * transl.x - newRot.m11 * transl.y - newRot.m12 * transl.z;
+//		newRot.m23 = transl.z - newRot.m20 * transl.x - newRot.m21 * transl.y - newRot.m22 * transl.z;
+//		System.out.println("Translation : " + newRot.toTranslationVector());
+//
+//		// f.transfoMatrix.translateVect(newRot.toTranslationVector());
+//		// System.out.println("previousPs: "+f.position);
+//		Vector3f newSpeed = newRot.toTranslationVector();
+//
+//		// should be done in update (to check possible collisions...
+//		// f.position.addLocal(newSpeed);
+//
+//		// recalage sur les points de rotation
+//
+//		// System.out.println("correctedPs: "+f.position);
+//		// f.transfoMatrix.set(newRot.multLocal(f.transfoMatrix));
+//		Vector3f lastPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size() - 1)));
+//		System.out.println("Point pos: " + preciseTrsf.mult(new Vector3f(f.points.get(f.points.size() - 1))));
+//		// as it's an integration =>notlinear, discrete (via dt), replace the
+//		// point at the good place
+//
+//		preciseTrsf.setTransform(f.position.toVec3f(), Vector3f.UNIT_XYZ, f.pangulaire.toRotationMatrix());
+//
+//		Vector3f newPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size() - 1)));
+//		newSpeed.addLocal(lastPosPoint.subtractLocal(newPosPoint));
+//		f.position.addLocal(lastPosPoint);
+//		// TODO: plus qu'un point
+//
+//		// utile pour le calcul de collision
+//		f.vitesse.set(newSpeed);
+//		System.out.println("JointPose : speed now " + newSpeed);
+		super.updatePosition(instant, dt);
 
+		// remove points collision when needed
+		int numPointToCheck = 0;
+		while (numPointToCheck < points.size()) {
+			if (numPointToCheck != idxL && numPointToCheck != idxR) {
+				Vector3f point = points.get(numPointToCheck);
+				// check if it has moved (more than 0.1mm)
+				if (point.distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck)))) > 0.0001) {
+					System.out.println("UNDO COLISION POINT : " + point + ".distance("
+							+ f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck))) + ") > 0.0001");
+					points.remove(numPointToCheck);
+					pointsIdx.remove(numPointToCheck);
+					//TODOAFTER: remove the point if geometry permit it.
+				}else{
+					numPointToCheck++;
+				}
+			} else {
+				numPointToCheck++;
+			}
+		}
 	}
 
 	@Override
 	public void updateForce(long instant, long dt) {
-		if(this.points.size() == 1){
-			//JointPonctuel
-			System.err.println("joint ponctuel instead of jointpose");
-			
-			//TODOAFTER more optimized? check!
-//		}else if(this.points.size() == 2){
-//			updateForceMax2(instant, dt);
-		}else if(this.points.size() >1){
-			updateForceNoMax(instant, dt);
-		}else{
-			System.err.println("Error, "+points.size()+" points in jointpose!");
-		}
-	}
+		if(needToRecompute){
+			if (this.points.size() == 1) {
+				// JointPonctuel
+				System.err.println("joint ponctuel instead of jointpose");
 	
+				// TODOAFTER more optimized? check!
+				// }else if(this.points.size() == 2){
+				// updateForceMax2(instant, dt);
+			} else if (this.points.size() > 1) {
+				updateForceNoMax(instant, dt);
+			} else {
+				System.err.println("Error, " + points.size() + " points in jointpose!");
+			}
+			needToRecompute = false;
+		}
+
+		// set aang
+		// moment of intertia: boule = mr²*2/5 tige(rot extrem): mL²/3 (4mr²/3)
+		// pavé (sur axe x): m*(y²+z²)/12
+		Vector3f accelAngul = rotationForceVector.divideLocal((float) (f.roundBBRayon * f.roundBBRayon * f.mass / 2));
+		System.out.println("move with force = "+rotationForceVector.length());
+		System.out.println("divide with = "+(float) (f.roundBBRayon * f.roundBBRayon * f.mass / 2));
+		System.out.println("move with accel = "+accelAngul.length());
+		f.aangulaire.addLocal(accelAngul);
+	}
+
 	public void updateForceNoMax(long instant, long dt) {
 
 		// sum forces
@@ -80,20 +158,26 @@ public class JointPose extends Joint {
 
 		// ///////create normale:
 
-		// get all vector (-PointofContact)
+		// get all vector (PointofContact-Pos)
 		// remove all vector with dot(sumF) >0 (remove normale in the same dir
 		// as the sum of forces)
+		// ListPoint represent points but with the center of gravity at 0,0,0
+		// instead at f.position.
 		List<Vector3f> listPoint = new ArrayList<>();
 		Vector3f fPos = f.position.toVec3f();
 		for (Vector3f pointOfContact : points) {
 			Vector3f vect = fPos.subtract(pointOfContact);
-			System.out.println("f.jointPose.points.add(new Vector3f(" + pointOfContact.x + "f, 0, " + pointOfContact.z
-					+ "f));");
-			vect.normalize();
+			System.out.println("((JointPose)f.joint).points.add(new Vector3f(" + pointOfContact.x + "f, " 
+					+ pointOfContact.y + "f, "
+					+ pointOfContact.z + "f));");
+			// vect.normalize();
 			// vect = Vector3f.UNIT_XYZ.divide(vect);
 			if (vect.dot(sumForcesN) < 0) {
 				// listVector.add(vect);
-				listPoint.add(pointOfContact);
+				listPoint.add(vect.multLocal(-1));
+			} else {
+				// put them in the other side
+				listPoint.add(vect);
 			}
 		}
 		if (listPoint.size() == 0) {
@@ -190,8 +274,8 @@ public class JointPose extends Joint {
 			Vector3f dirCheck = new Vector3f();
 
 			boolean pIsRight = sumForcesN.cross(normaleProjPlan).dot(solo) >= 0;
-			System.out.println("Dit right: "+sumForcesN.cross(normaleProjPlan));
-			System.out.println("is Right? "+pIsRight);
+			System.out.println("Dit right: " + sumForcesN.cross(normaleProjPlan));
+			System.out.println("is Right? " + pIsRight);
 			if (pIsRight) {
 				right = solo;
 			} else {
@@ -274,14 +358,16 @@ public class JointPose extends Joint {
 				// if right or left is just plain better solo, use it solo
 				if (right != null && left != null) {
 					System.out.println("right dir: " + sumForcesN.cross(sumForcesN.cross(right)));
-					System.out.println("right dir dot left: " + sumForcesN.cross(sumForcesN.cross(right)).dot(left.subtract(right)));
+					System.out.println("right dir dot left: "
+							+ sumForcesN.cross(sumForcesN.cross(right)).dot(left.subtract(right)));
 					if (sumForcesN.cross(sumForcesN.cross(right)).dot(left.subtract(right)) < 0) {
 						System.out.println("right better than left");
 						left = null;
 						solo = right;
 					} else {
 						System.out.println("left dir: " + sumForcesN.cross(sumForcesN.cross(left)));
-						System.out.println("left dir dot left: " + sumForcesN.cross(sumForcesN.cross(left)).dot(right.subtract(left)));
+						System.out.println("left dir dot left: "
+								+ sumForcesN.cross(sumForcesN.cross(left)).dot(right.subtract(left)));
 						if (sumForcesN.cross(sumForcesN.cross(left)).dot(right.subtract(left)) < 0) {
 							System.out.println("left better than right");
 							right = null;
@@ -294,14 +380,14 @@ public class JointPose extends Joint {
 				System.out.println("verify pos of O (via this dir: " + normaleProjPlan + ")");
 				if (right != null && left != null) {
 					dirRight = right.subtract(left);
-					System.out.println("new dirRight : "+dirRight);
+					System.out.println("new dirRight : " + dirRight);
 					dirCheck = sumForcesN.cross(dirRight).normalizeLocal();
-					System.out.println("new dircheck : "+dirCheck);
-//					solo = right.add(left).multLocal(0.5f);
-					System.out.println("verify if vector is not in the right side of O : " + 
-							normaleProjPlan.dot(dirCheck));
-					System.out.println("verify if we have not dépassé O : " + 
-							dirCheck.dot(right.add(left).multLocal(0.5f)));
+					System.out.println("new dircheck : " + dirCheck);
+					// solo = right.add(left).multLocal(0.5f);
+					System.out.println("verify if vector is not in the right side of O : "
+							+ normaleProjPlan.dot(dirCheck));
+					System.out.println("verify if we have not dépassé O : "
+							+ dirCheck.dot(right.add(left).multLocal(0.5f)));
 					equilibre = normaleProjPlan.dot(dirCheck) > 0 || dirCheck.dot(right.add(left).multLocal(0.5f)) > 0;
 					if (!equilibre) {
 						// check no points are in front of the 'line'
@@ -335,34 +421,54 @@ public class JointPose extends Joint {
 					}
 				}
 
-				System.out.println("boucle test " + equilibre + " && " + previousRight +"==" +right
-						+ " && " + previousLeft +"=="+ left + " && " + previousSolo +"==" +solo);
+				System.out.println("boucle test " + equilibre + " && " + previousRight + "==" + right + " && "
+						+ previousLeft + "==" + left + " && " + previousSolo + "==" + solo);
 			} while (!equilibre && !(previousRight == right && previousLeft == left && previousSolo == solo));
 			System.out.println("boucle finie -------------------- " + equilibre + " && " + (previousRight == right)
 					+ " && " + (previousLeft == left) + " && " + (previousSolo == solo));
 
+			// set points, in world coordinates
 			if (equilibre) {
 				// if O is behind => equi
 				System.out.println("EQUILIBRE");
 				point1 = point2 = Vector3f.ZERO;
-				rotationForceVector.set(0,0,0);
+				rotationForceVector.set(0, 0, 0);
+				pointRotation.set(point1);
+				idxL = idxR = -1;
 			} else if (right == null || left == null) {
 				// if only 1 point => solo rot
 				System.out.println("ROT 1P " + solo);
-				point1 = point2 = solo;
+				point1 = point2 = solo.add(fPos);
+				idxL = idxR = points.indexOf(point1);
+				pointRotation.set(point1);
 				rotationForceVector.set(solo).normalizeLocal().crossLocal(sumForces);
 			} else {
 				// else rot 2P
 				System.out.println("ROT 2P " + right + " , " + left);
-				point1 = right;
-				point2 = left;
-				//projection of O on plane (p1;p2) X SUM
-//				Plane plane = new Plane();
-//				plane.setPlanePoints(point1, point2, point2.add(sumForcesN));
-//				plane.setOriginNormal(point1, normal);
+				point1 = right.add(fPos);
+				point2 = left.add(fPos);
+				idxR = points.indexOf(point1);
+				idxL = points.indexOf(point2);
+//				System.out.println("IDXL = "+idxL);
+//				System.out.println("IDXL is "+point2+" in "+points);
+				// projection of O on plane (p1;p2) X SUM
+				// Plane plane = new Plane();
+				// plane.setPlanePoints(point1, point2, point2.add(sumForcesN));
+				// plane.setOriginNormal(point1, normal);
 
-				rotationForceVector.set(left).subtractLocal(right).normalizeLocal()
-					.mult(sumForces.length());
+				// need to set pointPivot !!
+				Vector3f p1p2 = point2.subtract(point1);
+				float numerateur = p1p2.dot(right);
+				float denominateur = p1p2.dot(p1p2);
+				if (denominateur < 0.000001f)
+					System.err.println("Error, wrong denominateur");
+				pointRotation = point1.subtract(p1p2.mult(numerateur / denominateur));
+				System.out.println("point pivot : " + pointRotation);
+
+				System.out.println("rotationForceVector force : " + sumForces.length());
+				System.out.println("rotationForceVector dir : " + left.subtract(right).normalizeLocal());
+
+				rotationForceVector.set(left).subtractLocal(right).normalizeLocal().multLocal(sumForces.length());
 			}
 
 		}
@@ -370,6 +476,8 @@ public class JointPose extends Joint {
 	}
 
 	// PASBON sauf nbPoints == 2 (et peut-etre 1, pas testé
+	// mais faut update car c'est vieux (genre les point viré au lieu de
+	// déplacé)
 	public void updateForceMax2(long instant, long dt) {
 		// gather forces
 
@@ -475,25 +583,39 @@ public class JointPose extends Joint {
 			normales.add(dejaVu.get(i));
 		}
 
-//		// normale - sumN = force restante (fr).
-//		forceResultante.set(sumForces.add(v1));
-//
-//		System.out.println("resultatnte : " + forceResultante + " nullable? "
-//				+ (sumForces.length() / 1000 > forceResultante.length()));
-//
-//		if (sumForces.length() / 1000 > forceResultante.length()) {
-//			forceResultante.set(0, 0, 0);
-//			pointPivot.set(0, 0, 0);
-//			return;
-//		}
-//
-//		// trouver le point de contact le plus "eloigné" dans l'axe de fr => pe
-//		f.getMostFarAwayPoint(forceResultante, pointPivot);
+		// // normale - sumN = force restante (fr).
+		// forceResultante.set(sumForces.add(v1));
+		//
+		// System.out.println("resultatnte : " + forceResultante + " nullable? "
+		// + (sumForces.length() / 1000 > forceResultante.length()));
+		//
+		// if (sumForces.length() / 1000 > forceResultante.length()) {
+		// forceResultante.set(0, 0, 0);
+		// pointPivot.set(0, 0, 0);
+		// return;
+		// }
+		//
+		// // trouver le point de contact le plus "eloigné" dans l'axe de fr =>
+		// pe
+		// f.getMostFarAwayPoint(forceResultante, pointPivot);
 
 		// faire passer cette force en accel angulaire sur l'axe donnée en
 		// pe.cross(fr)
 		// TODO
 
+	}
+
+	@Override
+	public void addCollisionPoint(Vector3f pointCollision, int idx) {
+		System.out.println("Joint pose has now "+pointCollision+" at idx "+idx);
+		this.points.add(pointCollision);
+		this.pointsIdx.add(idx);
+		this.needToRecompute = true;
+	}
+
+	@Override
+	public Collection<Integer> getIdx() {
+		return pointsIdx;
 	}
 
 }

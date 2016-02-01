@@ -27,6 +27,7 @@ public class CollisionPrediction {
 	public Vector3f localTC;
 	public Vector3f localP;
 	public Ray rayon = new Ray();
+	//best point in same plane as tri from formetri to merge with worldP (in world coord)
 	public Vector3f bestP;
 	
 }

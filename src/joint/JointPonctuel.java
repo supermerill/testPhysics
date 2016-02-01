@@ -1,96 +1,136 @@
 package joint;
 
-import com.jme3.math.FastMath;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
+import com.jme3.math.Matrix4f;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
 import old.Forme;
 
-public class JointPonctuel extends Joint {
+public class JointPonctuel extends JointRotation {
 
 	//del these if not used.
-	public Forme f1;
-	public int idxPointf1;
-	public Forme f2;
-	public int idxPointf2;
+//	public Forme f1;
+//	public int idxPointf1;
+//	public Forme f2;
+//	public int idxPointf2;
 	
 	//the point-joint
-	public Vector3f point;
+//	public Vector3f point; //World coord
+	public int idxPoint;
 	
 	
-	public void computeJointForce(Forme f){
-		if(f.landed) return;
-		int idxP = idxPointf2;
-		if(f == f1){
-			idxP = idxPointf1;
-		}
-		
-		//compute the sum of all force
-		//TODO remove mass... to create accel or add mass to gravity to have a force
-		Vector3f grav = new Vector3f(0,-0.00000981f,0);
-//		Vector3f grav = new Vector3f(0,-9.81f,0);
-		
-		
-		//create the normal force (via a dot)
-		Vector3f normal = f.position.toVec3f().subtractLocal(point);
-		System.out.println("normale : "+normal);
-//		Vector3f normal = point.subtract(f.position.toVec3f());
-		normal.normalizeLocal();
-		normal.multLocal(Math.abs(normal.dot(grav)));
-		
-		//compute the new sum (this vector is _|_ with the normal force)
-		Vector3f sumAccel = normal.add(grav);
-		System.out.println("grav : "+grav);
-		System.out.println("normale : "+normal);
-		System.out.println("sum : "+sumAccel);
-		System.out.println("dot : "+sumAccel.dot(normal));
-		System.out.println("0.0001 : "+0.0001f);
-		if(sumAccel.dot(normal) == 0) 
-		{
-			//exactly at vert. Add some D
-			normal.addLocal(new Vector3f(0.000000001f,-0.000000001f, 0.000000001f));
-			sumAccel = normal.add(grav);
-		}
-		assert sumAccel.dot(normal) < 0.0001 : "Error: the normal vector is not _|_ with the resultante";
-		
-		//add it as rotational force
-		float rayon = f.position.toVec3f().distance(point);
-		//on a l'acceleration en m/s² en 1 point
-		// on veut obtenir l'acceleration en rad/s²
-		//or 1 rad = 180° = pi*r metres
-		//donc (rad/s²) * pi*r = m/s²
-		
-		System.out.println("f.aangulaire : "+f.aangulaire);
-		
-		//divide per rayon because of (overly simplified) moment of inertia
-		Vector3f accelAngul = f.position.toVec3f().subtractLocal(point).crossLocal(sumAccel).divideLocal((float)(f.roundBBRayon*f.roundBBRayon));
-		f.aangulaire.addLocal(accelAngul);
-		Vector3f v1 = f.position.toVec3f().subtractLocal(point);
-		System.out.println("f.position.toVec3f().subtractLocal(point) : "+v1);
-		System.out.println("sum : "+sumAccel);
-		System.out.println("cross : "+sumAccel.cross(v1));
-		System.out.println("crossN : "+sumAccel.cross(normal));
-		System.out.println("f.aangulaire : "+f.aangulaire);
-		f.vangulaire.set(0,0,0);
-		f.vitesse.set(0,0,0);
-		f.acceleration.set(0,0,0);
-		//f1.physicUpdate = false;
-		f.posAxeRot.set(f.transfoMatrix.invert().mult(point));
-		
-		//TODO: with friction, split this force into linear and rotational
+	public JointPonctuel(Forme f, Vector3f pointCollision, int idx) {
+		super(f);
+		this.pointRotation = pointCollision;
+		this.idxPoint = idx;
 	}
-
 
 	@Override
 	public void updatePosition(long instant, long dt) {
-		// TODO Auto-generated method stub
-		
+		super.updatePosition(instant, dt);
+		//recaler le solide
+		f.position.addLocal(pointRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(f.points.size()-1)))));
 	}
+//		//set linear vit from vang
+//		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dt, f.vangulaire);
+//		System.out.println("vangulaire : "+f.vangulaire);
+//		System.out.println("pos : "+f.position);
+//		System.out.println("point : "+point);
+//		System.out.println("f.transfoMatrix.invert().mult(point) : "+f.transfoMatrix.invert().mult(point));
+//	
+//		Matrix4f newRot = new Matrix4f();
+//		newRot.setTransform(Vector3f.ZERO, Vector3f.UNIT_XYZ,
+//				quaterAdd.toRotationMatrix());
+//		
+//		Matrix4f preciseTrsf = new Matrix4f();
+//		preciseTrsf.setTransform(f.position.toVec3f(), Vector3f.UNIT_XYZ,
+//				f.pangulaire.toRotationMatrix());
+//		
+//		Vector3f transl = new Vector3f(f.transfoMatrix.invert().mult(point)).mult(1);
+////		new Matrix4d(f.transfoMatrix).multNormal(transl, transl);
+//		preciseTrsf.multNormal(transl, transl);
+//		newRot.m03 = transl.x - newRot.m00 * transl.x - newRot.m01 * transl.y - newRot.m02
+//				* transl.z;
+//		newRot.m13 = transl.y - newRot.m10 * transl.x - newRot.m11 * transl.y - newRot.m12
+//				* transl.z;
+//		newRot.m23 = transl.z - newRot.m20 * transl.x - newRot.m21 * transl.y - newRot.m22
+//				* transl.z;
+//		System.out.println("Translation : "+newRot.toTranslationVector());
+//		
+//		//f.transfoMatrix.translateVect(newRot.toTranslationVector());
+////		System.out.println("previousPs: "+f.position);
+//		Vector3f newSpeed = newRot.toTranslationVector();
+//		
+//		//should be done in update (to check possible collisions...
+//		//			f.position.addLocal(newSpeed);
+//
+//		//recalage sur les points de rotation
+//		
+////		System.out.println("correctedPs: "+f.position);
+////		f.transfoMatrix.set(newRot.multLocal(f.transfoMatrix));
+//		Vector3f lastPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size()-1)));
+//		System.out.println("Point pos: "+preciseTrsf.mult(new Vector3f(f.points.get(f.points.size()-1))));
+//		//as it's an integration =>notlinear, discrete (via dt), replace the point at the good place
+//
+//		preciseTrsf.setTransform(f.position.toVec3f(), Vector3f.UNIT_XYZ,
+//				f.pangulaire.toRotationMatrix());
+//		
+//		Vector3f newPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size()-1)));
+//		newSpeed.addLocal(lastPosPoint.subtractLocal(newPosPoint));
+//		f.position.addLocal(lastPosPoint);
+//		//TODO: plus qu'un point
+//
+//		//utile pour le calcul de collision
+//		f.vitesse.set(newSpeed);
+//		System.out.println("Jointonctuel : speed now "+newSpeed);
+//	}
 
 
 	@Override
 	public void updateForce(long instant, long dt) {
-		// TODO Auto-generated method stub
+		if(f.landed) return;
 		
+		//compute sum of force
+		Vector3f sumForce = new Vector3f(0,0,0);
+		for (Vector3f force : f.forces) {
+			sumForce.addLocal(force);
+		}
+
+		//create the normal force (via a dot)
+		Vector3f normalN = f.position.toVec3f().subtractLocal(pointRotation);
+		normalN.normalizeLocal();
+		Vector3f normal = normalN.mult(normalN.dot(sumForce));
+		System.out.println("normaleN : "+normalN);
+		System.out.println("length/totalLength : "+normalN.dot(sumForce) +" / "+sumForce.length());
+		System.out.println("normale : "+normal+" (length="+normal.length());
+
+		//create rotationVector
+		Vector3f rotVector = normalN.cross(sumForce.normalize()).mult(sumForce.length() - normal.length());
+		rotVector.divideLocal((float)(f.roundBBRayon*f.roundBBRayon*f.mass/3));
+		f.aangulaire.addLocal(rotVector);
+		System.out.println("sum : "+sumForce);
+		System.out.println("cross : "+normalN.cross(sumForce.normalize()));
+		System.out.println("crossN : "+normalN.cross(sumForce.normalize()).mult(sumForce.length() - normal.length()));
+		System.out.println("rotVector : "+rotVector);
+		System.out.println("f.aangulaire : "+f.aangulaire);
+		}
+
+	@Override
+	public void addCollisionPoint(Vector3f pointCollision, int idx) {
+		System.out.println("joint ponctuel:@"+pointRotation+" : add "+pointCollision);
+		f.joint = new JointPose(f);
+		f.joint.addCollisionPoint(pointRotation, idxPoint);
+		f.joint.addCollisionPoint(pointCollision, idx);
+		
+	}
+
+	@Override
+	public Collection<Integer> getIdx() {
+		return Arrays.asList(idxPoint);
 	}
 
 }

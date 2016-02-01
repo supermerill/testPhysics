@@ -11,6 +11,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 import jme3Double.Vector3d;
+import joint.JointPose;
 
 import collision.CollisionUpdater;
 
@@ -20,7 +21,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
 public class TestJointPoseAfficheur extends JComponent {
-
+	
 	ArrayList<Forme> formes = new ArrayList<>();
 	Color c = Color.BLACK;
 
@@ -59,92 +60,93 @@ public class TestJointPoseAfficheur extends JComponent {
 		// f.vangulaire.set(0,0.001f,0); //1 rotation toute les 5sec
 		f.physicUpdate = true;
 		f.landed = false;
+		f.joint = new JointPose(f);
 		f.doNotFaceCenter();
 
-//		 f.jointPose.points.add(new Vector3f(0,-30,0));
-//		 f.jointPose.points.add(new Vector3f(30,-30,0));
-//		 f.jointPose.points.add(new Vector3f(-30,-30,0));
-//		 f.jointPose.points.add(new Vector3f(0,-30,30));
-//		 f.jointPose.points.add(new Vector3f(0,-30,-30));
+//		 ((JointPose)f.joint).points.add(new Vector3f(0,-30,0));
+//		 ((JointPose)f.joint).points.add(new Vector3f(30,-30,0));
+//		 ((JointPose)f.joint).points.add(new Vector3f(-30,-30,0));
+//		 ((JointPose)f.joint).points.add(new Vector3f(0,-30,30));
+//		 ((JointPose)f.joint).points.add(new Vector3f(0,-30,-30));
 
-		// f.jointPose.points.add(new Vector3f(30,-20,30));
-		// f.jointPose.points.add(new Vector3f(30,-20,-30));
-		// f.jointPose.points.add(new Vector3f(-30,-20,30));
-		// f.jointPose.points.add(new Vector3f(-30,-20,-30));
+		// ((JointPose)f.joint).points.add(new Vector3f(30,-20,30));
+		// ((JointPose)f.joint).points.add(new Vector3f(30,-20,-30));
+		// ((JointPose)f.joint).points.add(new Vector3f(-30,-20,30));
+		// ((JointPose)f.joint).points.add(new Vector3f(-30,-20,-30));
 
-		// f.jointPose.points.add(new Vector3f(100,-30,0));
-		// f.jointPose.points.add(new Vector3f(-100,-30,0));
-		// f.jointPose.points.add(new Vector3f(0,-30,100));
-		// f.jointPose.points.add(new Vector3f(0,-30,-100));
-		// f.jointPose.points.add(new Vector3f(100,-30,100));
-		// f.jointPose.points.add(new Vector3f(-100,-30,100));
-		// f.jointPose.points.add(new Vector3f(100,-30,-100));
-		// f.jointPose.points.add(new Vector3f(-100,-30,-100));
+		// ((JointPose)f.joint).points.add(new Vector3f(100,-30,0));
+		// ((JointPose)f.joint).points.add(new Vector3f(-100,-30,0));
+		// ((JointPose)f.joint).points.add(new Vector3f(0,-30,100));
+		// ((JointPose)f.joint).points.add(new Vector3f(0,-30,-100));
+		// ((JointPose)f.joint).points.add(new Vector3f(100,-30,100));
+		// ((JointPose)f.joint).points.add(new Vector3f(-100,-30,100));
+		// ((JointPose)f.joint).points.add(new Vector3f(100,-30,-100));
+		// ((JointPose)f.joint).points.add(new Vector3f(-100,-30,-100));
 
-//		 f.jointPose.points.add(new Vector3f(40,0,-30));
-//		 f.jointPose.points.add(new Vector3f(-30,0,40));
-//		 f.jointPose.points.add(new Vector3f(-30,0,-30));
+//		 ((JointPose)f.joint).points.add(new Vector3f(40,0,-30));
+//		 ((JointPose)f.joint).points.add(new Vector3f(-30,0,40));
+//		 ((JointPose)f.joint).points.add(new Vector3f(-30,0,-30));
 
-		// f.jointPose.points.add(new Vector3f(-10,0,0));
-		// f.jointPose.points.add(new Vector3f(100,0,0));
+		// ((JointPose)f.joint).points.add(new Vector3f(-10,0,0));
+		// ((JointPose)f.joint).points.add(new Vector3f(100,0,0));
 
-//		f.jointPose.points.add(new Vector3f(-100, 0, -50));
-//		f.jointPose.points.add(new Vector3f(0, 0, -30));
-//		f.jointPose.points.add(new Vector3f(-30, 0, -30));
-//		f.jointPose.points.add(new Vector3f(-3, 0, 30));
-//		f.jointPose.points.add(new Vector3f(-30, 0, 0));
-//		f.jointPose.points.add(new Vector3f(-20, 0, 15));
+//		((JointPose)f.joint).points.add(new Vector3f(-100, 0, -50));
+//		((JointPose)f.joint).points.add(new Vector3f(0, 0, -30));
+//		((JointPose)f.joint).points.add(new Vector3f(-30, 0, -30));
+//		((JointPose)f.joint).points.add(new Vector3f(-3, 0, 30));
+//		((JointPose)f.joint).points.add(new Vector3f(-30, 0, 0));
+//		((JointPose)f.joint).points.add(new Vector3f(-20, 0, 15));
 		
 
-//		f.jointPose.points.add(new Vector3f(-10, 0, -30));
-//		f.jointPose.points.add(new Vector3f(-30, 0, -30));
-//		f.jointPose.points.add(new Vector3f(-30, 0, 10));
-//		f.jointPose.points.add(new Vector3f(10, 0, -30));
-//		f.jointPose.points.add(new Vector3f(-4, 0, -10.1f));
+//		((JointPose)f.joint).points.add(new Vector3f(-10, 0, -30));
+//		((JointPose)f.joint).points.add(new Vector3f(-30, 0, -30));
+//		((JointPose)f.joint).points.add(new Vector3f(-30, 0, 10));
+//		((JointPose)f.joint).points.add(new Vector3f(10, 0, -30));
+//		((JointPose)f.joint).points.add(new Vector3f(-4, 0, -10.1f));
 
-//		f.jointPose.points.add(new Vector3f(10, 0, 30));
-//		f.jointPose.points.add(new Vector3f(30, 0, 30));
-//		f.jointPose.points.add(new Vector3f(30, 0, 10));
-//		f.jointPose.points.add(new Vector3f(10, 0, 30));
-//		f.jointPose.points.add(new Vector3f(4, 0, 0.1f));
+//		((JointPose)f.joint).points.add(new Vector3f(10, 0, 30));
+//		((JointPose)f.joint).points.add(new Vector3f(30, 0, 30));
+//		((JointPose)f.joint).points.add(new Vector3f(30, 0, 10));
+//		((JointPose)f.joint).points.add(new Vector3f(10, 0, 30));
+//		((JointPose)f.joint).points.add(new Vector3f(4, 0, 0.1f));
 
-//		f.jointPose.points.add(new Vector3f(9.63876f, 0, 3.0678787f));
-//		f.jointPose.points.add(new Vector3f(12.811367f, 0, -8.452932f));
-//		f.jointPose.points.add(new Vector3f(19.352798f, 0, 11.159054f));
-//		f.jointPose.points.add(new Vector3f(-6.111166f, 0, -11.166454f));
-//		f.jointPose.points.add(new Vector3f(26.28289f, 0, -6.854574f));
+//		((JointPose)f.joint).points.add(new Vector3f(9.63876f, 0, 3.0678787f));
+//		((JointPose)f.joint).points.add(new Vector3f(12.811367f, 0, -8.452932f));
+//		((JointPose)f.joint).points.add(new Vector3f(19.352798f, 0, 11.159054f));
+//		((JointPose)f.joint).points.add(new Vector3f(-6.111166f, 0, -11.166454f));
+//		((JointPose)f.joint).points.add(new Vector3f(26.28289f, 0, -6.854574f));
 		
 
-//		f.jointPose.points.add(new Vector3f(-14.720682f, 0, 2.3897095f));
-//		f.jointPose.points.add(new Vector3f(-19.071083f, 0, -10.783894f));
-//		f.jointPose.points.add(new Vector3f(-15.972529f, 0, -6.0288467f));
-//		f.jointPose.points.add(new Vector3f(-6.6198025f, 0, 16.227226f));
-//		f.jointPose.points.add(new Vector3f(8.292912f, 0, -11.612946f));
+//		((JointPose)f.joint).points.add(new Vector3f(-14.720682f, 0, 2.3897095f));
+//		((JointPose)f.joint).points.add(new Vector3f(-19.071083f, 0, -10.783894f));
+//		((JointPose)f.joint).points.add(new Vector3f(-15.972529f, 0, -6.0288467f));
+//		((JointPose)f.joint).points.add(new Vector3f(-6.6198025f, 0, 16.227226f));
+//		((JointPose)f.joint).points.add(new Vector3f(8.292912f, 0, -11.612946f));
 
-//f.jointPose.points.add(new Vector3f(29.061073f, 0, 16.655365f));
-//f.jointPose.points.add(new Vector3f(22.77488f, 0, -17.025723f));
-//f.jointPose.points.add(new Vector3f(32.93412f, 0, 47.316376f));
-//f.jointPose.points.add(new Vector3f(-8.480434f, 0, 9.62236f));
-//f.jointPose.points.add(new Vector3f(33.12845f, 0, -25.385738f));
+//((JointPose)f.joint).points.add(new Vector3f(29.061073f, 0, 16.655365f));
+//((JointPose)f.joint).points.add(new Vector3f(22.77488f, 0, -17.025723f));
+//((JointPose)f.joint).points.add(new Vector3f(32.93412f, 0, 47.316376f));
+//((JointPose)f.joint).points.add(new Vector3f(-8.480434f, 0, 9.62236f));
+//((JointPose)f.joint).points.add(new Vector3f(33.12845f, 0, -25.385738f));
 
 		Random rand = new Random();
 		for(int i=0;i<5;i++){
-			f.jointPose.points.add(new Vector3f((rand.nextFloat()*100)-25, 0, (rand.nextFloat()*100)-25));
+			((JointPose)f.joint).points.add(new Vector3f((rand.nextFloat()*100)-25, 0, (rand.nextFloat()*100)-25));
 		}
 		
-//		f.jointPose.points.add(new Vector3f(-1.3086681f, 0, -3.8920822f));
-//		f.jointPose.points.add(new Vector3f(-8.117588f, 0, 23.260162f));
-//		f.jointPose.points.add(new Vector3f(18.827335f, 0, 18.136639f));
-//		f.jointPose.points.add(new Vector3f(-14.779891f, 0, 29.894077f));
-//		f.jointPose.points.add(new Vector3f(14.058125f, 0, 25.960533f));
+//		((JointPose)f.joint).points.add(new Vector3f(-1.3086681f, 0, -3.8920822f));
+//		((JointPose)f.joint).points.add(new Vector3f(-8.117588f, 0, 23.260162f));
+//		((JointPose)f.joint).points.add(new Vector3f(18.827335f, 0, 18.136639f));
+//		((JointPose)f.joint).points.add(new Vector3f(-14.779891f, 0, 29.894077f));
+//		((JointPose)f.joint).points.add(new Vector3f(14.058125f, 0, 25.960533f));
 		
 
 		f.position.set(0, 20, 0);
 		
-		f.jointPose.f = f;
+		((JointPose)f.joint).f = f;
 		f.forces.add(new Vector3f(0, -200, 0));
 
-		f.jointPose.updateForce(0, 0);
+		((JointPose)f.joint).updateForce(0, 0);
 
 		view.formes.add(f);
 
@@ -173,8 +175,8 @@ public class TestJointPoseAfficheur extends JComponent {
 		System.out.println("===DRAW===");
 //		System.out.println("maxX = "+maxX+"maxY = "+maxY);
 		for (Forme forme : formes) {
-			System.out.println("p1 = "+forme.jointPose.point1);
-			System.out.println("p2 = "+forme.jointPose.point2);
+			System.out.println("p1 = "+((JointPose)forme.joint).point1);
+			System.out.println("p2 = "+((JointPose)forme.joint).point2);
 			// System.out.println(" =Forme@"+forme.position+" : "+forme.transfoMatrix);
 			// create transformation matrix
 			g.setColor(Color.WHITE);
@@ -196,7 +198,7 @@ public class TestJointPoseAfficheur extends JComponent {
 			}
 
 			g.setColor(Color.BLACK);
-			for (Vector3f pc : forme.jointPose.points) {
+			for (Vector3f pc : ((JointPose)forme.joint).points) {
 				g.fillOval((int) (maxX + pc.x + pc.y / 2) - 2, (int) (maxY - pc.z - pc.y / 2) - 2, 5, 5);
 			}
 			g.setColor(Color.CYAN);
@@ -205,45 +207,50 @@ public class TestJointPoseAfficheur extends JComponent {
 
 				g.setColor(Color.MAGENTA);
 				Vector3f m = new Vector3f(0, 0, 0);
-				Vector3f n = forme.jointPose.normale2Draw.mult(100);
+				Vector3f n = ((JointPose)forme.joint).normale2Draw.mult(100);
 				g.drawLine(maxX + (int) (m.x + m.y / 2), maxY - (int) (m.z + m.y / 2), maxX + (int) (n.x + n.y / 2),
 						maxY - (int) (n.z + n.y / 2));
 				g.setColor(Color.GREEN);
-				n = forme.jointPose.normale2Draw2.mult(100);
+				n = ((JointPose)forme.joint).normale2Draw2.mult(100);
 				g.drawLine(maxX + (int) (m.x + m.y / 2), maxY - (int) (m.z + m.y / 2), maxX + (int) (n.x + n.y / 2),
 						maxY - (int) (n.z + n.y / 2));
 				g.setColor(Color.CYAN);
-				n = forme.jointPose.normale2Draw3.mult(100);
+				n = ((JointPose)forme.joint).normale2Draw3.mult(100);
 				g.drawLine(maxX + (int) (m.x + m.y / 2), maxY - (int) (m.z + m.y / 2), maxX + (int) (n.x + n.y / 2),
 						maxY - (int) (n.z + n.y / 2));
 			}
 
 			g.setColor(Color.ORANGE);
-			for (int i = 0; i < forme.jointPose.normales.size(); i++) {
-				Vector3f m = forme.jointPose.points.get(i);
-				Vector3f n = forme.jointPose.normales.get(i).add(forme.jointPose.points.get(i));
+			for (int i = 0; i < ((JointPose)forme.joint).normales.size(); i++) {
+				Vector3f m = ((JointPose)forme.joint).points.get(i);
+				Vector3f n = ((JointPose)forme.joint).normales.get(i).add(((JointPose)forme.joint).points.get(i));
 				g.drawLine(maxX + (int) (m.x + m.y / 2), maxY - (int) (m.z + m.y / 2), maxX + (int) (n.x + n.y / 2),
 						maxY - (int) (n.z + n.y / 2));
 			}
 			g.setColor(Color.MAGENTA);
 			{
-				Vector3f m = forme.jointPose.forceResultante.add(forme.jointPose.pointPivot);
-				Vector3f n = forme.jointPose.pointPivot;
-				g.drawLine(maxX + (int) (m.x + m.y / 2), maxY - (int) (m.z + m.y / 2), maxX + (int) (n.x + n.y / 2),
-						maxY - (int) (n.z + n.y / 2));
+//				Vector3f m = ((JointPose)forme.joint).forceResultante.add(((JointPose)forme.joint).pointPivot);
+//				Vector3f n = ((JointPose)forme.joint).pointPivot;
+//				g.drawLine(maxX + (int) (m.x + m.y / 2), maxY - (int) (m.z + m.y / 2), maxX + (int) (n.x + n.y / 2),
+//						maxY - (int) (n.z + n.y / 2));
 
-				Vector3f pc = forme.jointPose.point1;
+				Vector3f pc = ((JointPose)forme.joint).point1;
 //				System.out.println("draw point1 : "+pc+ ": "+(int)( (maxX + pc.x + pc.y / 2) - 2)+", "+(int)( (maxY - pc.z - pc.y / 2) - 2)+", "+5+", "+5);
 //				System.out.println("draw point1 : "+pc+ ": "+(int)( (pc.x + pc.y / 2) - 2)+", "+(int)( (pc.z - pc.y / 2) - 2));
 //				System.out.println("draw point1 : "+(int)( ((maxY - pc.y) - (pc.z / 2)) - 2)+" = "+(maxY - pc.y)+" - "+( (pc.z / 2) - 2));
 //				System.out.println("draw point1 : "+(maxY - pc.y)+" = "+maxY+" - "+pc.y);
 				g.fillOval((int) (maxX + pc.x + pc.y / 2) - 2, (int) (maxY - pc.z - pc.y / 2) - 2, 5, 5);
 				g.setColor(Color.GREEN);
-				pc = forme.jointPose.point2;
+				pc = ((JointPose)forme.joint).point2;
 				g.fillOval((int) (maxX + pc.x + pc.y / 2) - 2, (int) (maxY - pc.z - pc.y / 2) - 2, 5, 5);
+
+				g.setColor(Color.RED);
+				pc = ((JointPose)forme.joint).pointRotation;
+				g.fillOval((int) (maxX + pc.x + pc.y / 2) - 2, (int) (maxY - pc.z - pc.y / 2) - 2, 5, 5);
+
 				g.setColor(Color.BLUE);
-				n = forme.jointPose.point1.add(forme.jointPose.point2.subtract(forme.jointPose.point1).mult(10000));
-				m = forme.jointPose.point1.add(forme.jointPose.point2.subtract(forme.jointPose.point1).mult(-10000));
+				Vector3f n = ((JointPose)forme.joint).point1.add(((JointPose)forme.joint).point2.subtract(((JointPose)forme.joint).point1).mult(10000));
+				Vector3f m = ((JointPose)forme.joint).point1.add(((JointPose)forme.joint).point2.subtract(((JointPose)forme.joint).point1).mult(-10000));
 				g.drawLine(maxX + (int) (m.x + m.y / 2), maxY - (int) (m.z + m.y / 2), maxX + (int) (n.x + n.y / 2),
 						maxY - (int) (n.z + n.y / 2));
 
