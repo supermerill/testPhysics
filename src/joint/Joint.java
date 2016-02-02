@@ -40,4 +40,10 @@ public abstract class Joint {
 		return new ArrayList<>(0);
 	}
 	
+	public int degreeOfLiberty(){
+		return 3;
+	}
+
+	public abstract void gotoCollision(int pointIdx, Vector3f pointObj);
+	
 }

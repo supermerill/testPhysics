@@ -61,20 +61,6 @@ public class Forme {
 	Vector3d calcul1 = new Vector3d();
 	public Vector3f calculF = new Vector3f();
 	
-	public class Triangle{
-		public Triangle(int i, int j, int k) {
-			a=i;b=j;c=k;
-			float ij = points.get(i).distance(points.get(j));
-			float jk = points.get(j).distance(points.get(k));
-			float ki = points.get(k).distance(points.get(i));
-			bbRound = Math.max(Math.max(ij,jk),ki);
-		}
-
-		public int a,b,c;
-		public float bbRound; // roundbounding box
-		public String toString(){return a+","+b+","+c;}
-	}
-	
 	public CollisionMobileSol checkCollision(Forme f2){
 		if(f2.landed){
 			if(!landed) return checkCollisionWithLand(f2);

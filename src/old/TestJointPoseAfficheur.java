@@ -40,18 +40,18 @@ public class TestJointPoseAfficheur extends JComponent {
 		f.points.add(new Vector3f(-100, -20, 50)); // 5
 		f.points.add(new Vector3f(100, -20, 50)); // 6
 		f.points.add(new Vector3f(100, -20, -50)); // 7
-		f.triangles.add(f.new Triangle(1, 0, 4));
-		f.triangles.add(f.new Triangle(4, 5, 1));
-		f.triangles.add(f.new Triangle(2, 1, 5));
-		f.triangles.add(f.new Triangle(5, 6, 2));
-		f.triangles.add(f.new Triangle(3, 0, 4));
-		f.triangles.add(f.new Triangle(4, 7, 3));
-		f.triangles.add(f.new Triangle(0, 1, 2));
-		f.triangles.add(f.new Triangle(2, 3, 0));
-		f.triangles.add(f.new Triangle(4, 5, 6));
-		f.triangles.add(f.new Triangle(6, 7, 4));
-		f.triangles.add(f.new Triangle(2, 6, 7));
-		f.triangles.add(f.new Triangle(7, 3, 2));
+		f.triangles.add(new Triangle(f,1, 0, 4));
+		f.triangles.add(new Triangle(f,4, 5, 1));
+		f.triangles.add(new Triangle(f,2, 1, 5));
+		f.triangles.add(new Triangle(f,5, 6, 2));
+		f.triangles.add(new Triangle(f,3, 0, 4));
+		f.triangles.add(new Triangle(f,4, 7, 3));
+		f.triangles.add(new Triangle(f,0, 1, 2));
+		f.triangles.add(new Triangle(f,2, 3, 0));
+		f.triangles.add(new Triangle(f,4, 5, 6));
+		f.triangles.add(new Triangle(f,6, 7, 4));
+		f.triangles.add(new Triangle(f,2, 6, 7));
+		f.triangles.add(new Triangle(f,7, 3, 2));
 		f.roundBBRayon = 150;
 		// f.position.set(-50,0,0);
 		// f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180,
@@ -129,10 +129,13 @@ public class TestJointPoseAfficheur extends JComponent {
 //((JointPose)f.joint).points.add(new Vector3f(-8.480434f, 0, 9.62236f));
 //((JointPose)f.joint).points.add(new Vector3f(33.12845f, 0, -25.385738f));
 
-		Random rand = new Random();
-		for(int i=0;i<5;i++){
-			((JointPose)f.joint).points.add(new Vector3f((rand.nextFloat()*100)-25, 0, (rand.nextFloat()*100)-25));
-		}
+//		Random rand = new Random();
+//		for(int i=0;i<5;i++){
+//			((JointPose)f.joint).points.add(new Vector3f((rand.nextFloat()*100)-25, 0, (rand.nextFloat()*100)-25));
+//		}
+
+((JointPose)f.joint).points.add(new Vector3f(0.0f, -145.0f, 0.0f));
+((JointPose)f.joint).points.add(new Vector3f(-143.55411f, -188.5638f, -50.0f));
 		
 //		((JointPose)f.joint).points.add(new Vector3f(-1.3086681f, 0, -3.8920822f));
 //		((JointPose)f.joint).points.add(new Vector3f(-8.117588f, 0, 23.260162f));
@@ -141,7 +144,8 @@ public class TestJointPoseAfficheur extends JComponent {
 //		((JointPose)f.joint).points.add(new Vector3f(14.058125f, 0, 25.960533f));
 		
 
-		f.position.set(0, 20, 0);
+//		f.position.set(0, 20, 0);
+		f.position.set(-54.453263686700666f, -138.95492230902892f, 0.0f);
 		
 		((JointPose)f.joint).f = f;
 		f.forces.add(new Vector3f(0, -200, 0));
@@ -180,7 +184,7 @@ public class TestJointPoseAfficheur extends JComponent {
 			// System.out.println(" =Forme@"+forme.position+" : "+forme.transfoMatrix);
 			// create transformation matrix
 			g.setColor(Color.WHITE);
-			for (Forme.Triangle tri : forme.triangles) {
+			for (Triangle tri : forme.triangles) {
 
 				// System.out.println("m = "+forme.points.get(tri.a));
 				// System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a),

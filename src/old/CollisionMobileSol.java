@@ -1,7 +1,5 @@
 package old;
 
-import old.Forme.Triangle;
-
 import collision.CollisionPrediction;
 
 import com.jme3.light.PointLight;
@@ -9,6 +7,7 @@ import com.jme3.math.Plane;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 
+@Deprecated
 public class CollisionMobileSol {
 	Forme mobile;
 	Forme sol;

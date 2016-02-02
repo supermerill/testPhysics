@@ -133,4 +133,9 @@ public class JointPonctuel extends JointRotation {
 		return Arrays.asList(idxPoint);
 	}
 
+	@Override
+	public int degreeOfLiberty(){
+		return 2;
+	}
+
 }

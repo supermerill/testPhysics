@@ -35,12 +35,12 @@ public class Afficheur extends JComponent {
 //		f.points.add(new Vector3f(-15, 15, -6));
 //		f.points.add(new Vector3f(15, 15, -6));
 //		f.points.add(new Vector3f(-3, 3, 6));
-//		f.triangles.add(f.new Triangle(0, 1, 2));
-//		f.triangles.add(f.new Triangle(1, 2, 3));
-//		f.triangles.add(f.new Triangle(0, 1, 4));
-//		f.triangles.add(f.new Triangle(1, 2, 4));
-//		f.triangles.add(f.new Triangle(2, 3, 4));
-//		f.triangles.add(f.new Triangle(3, 0, 4));
+//		f.triangles.add(new Triangle(f,0, 1, 2));
+//		f.triangles.add(new Triangle(f,1, 2, 3));
+//		f.triangles.add(new Triangle(f,0, 1, 4));
+//		f.triangles.add(new Triangle(f,1, 2, 4));
+//		f.triangles.add(new Triangle(f,2, 3, 4));
+//		f.triangles.add(new Triangle(f,3, 0, 4));
 //		f.roundBBRayon = 30;
 //		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
 //		f.acceleration.set(0.0000001f,-0.00000981f,0);
@@ -58,18 +58,18 @@ public class Afficheur extends JComponent {
 		f.points.add(new Vector3f(-100, -20, 50)); //5
 		f.points.add(new Vector3f(100, -20, 50)); //6
 		f.points.add(new Vector3f(100, -20, -50)); //7
-		f.triangles.add(f.new Triangle(1,0,4));
-		f.triangles.add(f.new Triangle(4,5,1));
-		f.triangles.add(f.new Triangle(2,1,5));
-		f.triangles.add(f.new Triangle(5,6,2));
-		f.triangles.add(f.new Triangle(3,0,4));
-		f.triangles.add(f.new Triangle(4,7,3));
-		f.triangles.add(f.new Triangle(0, 1, 2));
-		f.triangles.add(f.new Triangle(2, 3, 0));
-		f.triangles.add(f.new Triangle(4, 5, 6));
-		f.triangles.add(f.new Triangle(6, 7, 4));
-		f.triangles.add(f.new Triangle(2,6,7));
-		f.triangles.add(f.new Triangle(7,3,2));
+		f.triangles.add(new Triangle(f,1,0,4));
+		f.triangles.add(new Triangle(f,4,5,1));
+		f.triangles.add(new Triangle(f,2,1,5));
+		f.triangles.add(new Triangle(f,5,6,2));
+		f.triangles.add(new Triangle(f,3,0,4));
+		f.triangles.add(new Triangle(f,4,7,3));
+		f.triangles.add(new Triangle(f,0, 1, 2));
+		f.triangles.add(new Triangle(f,2, 3, 0));
+		f.triangles.add(new Triangle(f,4, 5, 6));
+		f.triangles.add(new Triangle(f,6, 7, 4));
+		f.triangles.add(new Triangle(f,2,6,7));
+		f.triangles.add(new Triangle(f,7,3,2));
 		f.roundBBRayon = 150;
 		f.position.set(-50,0,0);
 		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
@@ -93,18 +93,18 @@ public class Afficheur extends JComponent {
 		f.points.add(new Vector3f(-200, -10, 100)); //5
 		f.points.add(new Vector3f(200, -10, 100)); //6
 		f.points.add(new Vector3f(200, -10, -100)); //7
-		f.triangles.add(f.new Triangle(1,0,4));
-		f.triangles.add(f.new Triangle(4,5,1));
-		f.triangles.add(f.new Triangle(2,1,5));
-		f.triangles.add(f.new Triangle(5,6,2));
-		f.triangles.add(f.new Triangle(3,0,4));
-		f.triangles.add(f.new Triangle(4,7,3));
-		f.triangles.add(f.new Triangle(0, 1, 2));
-		f.triangles.add(f.new Triangle(2, 3, 0));
-		f.triangles.add(f.new Triangle(4, 5, 6));
-		f.triangles.add(f.new Triangle(6, 7, 4));
-		f.triangles.add(f.new Triangle(2,6,7));
-		f.triangles.add(f.new Triangle(7,3,2));
+		f.triangles.add(new Triangle(f,1,0,4));
+		f.triangles.add(new Triangle(f,4,5,1));
+		f.triangles.add(new Triangle(f,2,1,5));
+		f.triangles.add(new Triangle(f,5,6,2));
+		f.triangles.add(new Triangle(f,3,0,4));
+		f.triangles.add(new Triangle(f,4,7,3));
+		f.triangles.add(new Triangle(f,0, 1, 2));
+		f.triangles.add(new Triangle(f,2, 3, 0));
+		f.triangles.add(new Triangle(f,4, 5, 6));
+		f.triangles.add(new Triangle(f,6, 7, 4));
+		f.triangles.add(new Triangle(f,2,6,7));
+		f.triangles.add(new Triangle(f,7,3,2));
 
 
 
@@ -121,9 +121,9 @@ public class Afficheur extends JComponent {
 //		f.points.add(new Vector3f(-100, 100, 0)); //13
 		f.roundBBRayon = 250;
 		f.position.set(0,-200,0);
-		f.triangles.add(f.new Triangle(10, 13, 11));
-		f.triangles.add(f.new Triangle(11, 13, 12));
-		f.triangles.add(f.new Triangle(12, 13, 10));
+		f.triangles.add(new Triangle(f,10, 13, 11));
+		f.triangles.add(new Triangle(f,11, 13, 12));
+		f.triangles.add(new Triangle(f,12, 13, 10));
 		f.doNotFaceCenter();
 		view.formes.add(f);
 
@@ -263,7 +263,7 @@ public class Afficheur extends JComponent {
 //			System.out.println(" =Forme@"+forme.position+" : "+forme.transfoMatrix);
 			//create transformation matrix
 			g.setColor(c);
-			for (Forme.Triangle tri : forme.triangles) {
+			for (Triangle tri : forme.triangles) {
 
 //				System.out.println("m = "+forme.points.get(tri.a));
 //				System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a), null));
