@@ -70,7 +70,7 @@ public class Afficheur extends JComponent {
 		f.triangles.add(new Triangle(f,6, 7, 4));
 		f.triangles.add(new Triangle(f,2,6,7));
 		f.triangles.add(new Triangle(f,7,3,2));
-		f.roundBBRayon = 150;
+		f.roundBBRayon = 120;
 		f.position.set(-50,0,0);
 		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
 		f.forces.add(new Vector3f(0.000000f,-9.81f,0).mult((float)f.mass));
@@ -221,6 +221,7 @@ public class Afficheur extends JComponent {
 					
 					//apply gravity
 					Vector3f force = new Vector3f(0,0,0);
+					Vector3f aforce = new Vector3f(0,0,0);
 					if(view.keyPress == KeyEvent.VK_Q){
 						force.set(20000,20000,0);
 					}
@@ -230,11 +231,16 @@ public class Afficheur extends JComponent {
 					if(view.keyPress == KeyEvent.VK_Z){
 						force.set(0,200000,0);
 					}
+					if(view.keyPress == KeyEvent.VK_R){
+						aforce.set(0,0,-200000);
+					}
 					for(Forme f : view.formes){
 						while(f.forces.size()>1){
 							f.forces.remove(f.forces.size()-1);
 						}
 						if(!f.landed) f.forces.add(force);
+						f.angularForces.clear();
+						f.angularForces.add(aforce);
 					}
 					previousMs = currentMs;
 				}

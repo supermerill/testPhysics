@@ -1,5 +1,6 @@
 package joint;
 
+import jme3Double.Vector3d;
 import old.Forme;
 
 import com.jme3.math.Quaternion;
@@ -69,7 +70,16 @@ public class JointFreeFlight extends Joint {
 		System.out.println("sumForces : " + f.acceleration);
 		
 		//decomposition en linéaire et angulaire
-		//TODO: need position of forces to do that!
+		//TODO: need position of forces to do that?
+		// (or not as thay can be decomposed by linear force and angular force)
+		
+		//Angular force: just transpose them to angular acceleration
+		f.aangulaire.set(0,0,0);
+		for (Vector3f force : f.angularForces) {
+			f.aangulaire.addLocal(force);
+		}
+		System.out.println("f.aangulaire="+f.aangulaire);
+		f.aangulaire.divideLocal(f.getIntertiaMoment());
 		
 		//for each force : OF dot F1F2 => lineaire
 		//the remaining is rot with OF/2 as center
@@ -81,7 +91,23 @@ public class JointFreeFlight extends Joint {
 	}
 
 	@Override
-	public void addCollisionPoint(Vector3f pointCollision, int idx) {
-		f.joint = new JointPonctuel(f, pointCollision, idx);
+	public void addCollisionPoint(Vector3f pointCollision, int idx, Forme fOpposite, int idxOpposite) {
+		f.joint = new JointPonctuel(f, pointCollision, idx, fOpposite, idxOpposite);
+	}
+
+	@Override
+	public void gotoCollision(int pointIdx, Vector3f pointObj) {
+		//check diff
+		Vector3f worldPos = new Vector3f();
+		f.transfoMatrix.mult(f.points.get(pointIdx), worldPos);
+		System.out.println("  worldPos="+worldPos+" to pointObj="+pointObj);
+		f.position.addLocal(new Vector3d(pointObj.subtract(worldPos)));
+		f.transfoMatrix.setTranslation(f.position.toVec3f());
+	}
+
+	@Override
+	public void removeCollisionPoint(Vector3f pointCollision, int idx) {
+		// TODO Auto-generated method stub
+		
 	}
 }

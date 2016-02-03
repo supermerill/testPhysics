@@ -27,12 +27,20 @@ public class Forme {
 	public Joint joint = new JointFreeFlight(this);
 	public ArrayList<CollisionPrediction> collideAt = new ArrayList<>(1); //TODO
 	public ArrayList<Vector3f> forces = new ArrayList<>();
+	public ArrayList<Vector3f> angularForces = new ArrayList<>();
 	//-------------
 	
 	
 	public boolean landed = true;
-	public double mass = 1000; // en gramme
 	public double roundBBRayon=1; //rayon of the boundingbox (en m)
+	public double mass = 1000; // en gramme
+	//use an overly-simplified model of moment of inertia.
+	// moment of intertia: boule = mr²*2/5 tige(rot extrem): mL²/3 (4mr²/3)
+	// pavé (sur axe x): m*(y²+z²)/12
+	// our own : m*r²/2 = m*L²/8 (toupdate)
+	//TODOAFTER2 : use a better approximation, computed at creation/ great moments
+	//			ie, more sphere, rod or pave?
+	public float getIntertiaMoment(){ return (float)(mass * roundBBRayon*roundBBRayon/20); }
 	
 	//it's always 0,0,0 !
 	//Vector3d gravityCenter = new Vector3d(0,0,0); // en m

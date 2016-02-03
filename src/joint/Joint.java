@@ -33,8 +33,9 @@ public abstract class Joint {
 	public void receiveEnergy(float force, Vector3f position, Vector3f direction){
 		
 	}
-	
-	public abstract void addCollisionPoint(Vector3f pointCollision, int idx);
+
+	public abstract void addCollisionPoint(Vector3f pointCollision, int idx, Forme fOpposite, int idxOpposite);
+	public abstract void removeCollisionPoint(Vector3f pointCollision, int idx);
 
 	public Collection<Integer> getIdx() {
 		return new ArrayList<>(0);
@@ -45,5 +46,6 @@ public abstract class Joint {
 	}
 
 	public abstract void gotoCollision(int pointIdx, Vector3f pointObj);
+
 	
 }

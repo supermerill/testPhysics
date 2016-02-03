@@ -19,6 +19,8 @@ public class JointPose extends JointRotation {
 	// the point-joint (s) (in world coordinates)
 	public ArrayList<Vector3f> points = new ArrayList<>();
 	public ArrayList<Integer> pointsIdx = new ArrayList<>();
+	public ArrayList<Forme> oppositeForme = new ArrayList<>();
+	public ArrayList<Integer> oppositePointsIdx = new ArrayList<>();
 
 	// public Vector3f forceResultante = new Vector3f();
 	// public Vector3f pointPivot = new Vector3f(); //super.pointRotation
@@ -120,6 +122,12 @@ public class JointPose extends JointRotation {
 							+ f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck))) + ") > 0.0001");
 					points.remove(numPointToCheck);
 					pointsIdx.remove(numPointToCheck);
+					
+					//remove the same point in the other forme.
+					oppositeForme.get(numPointToCheck).joint.removeCollisionPoint(point, oppositePointsIdx.get(numPointToCheck));
+
+					oppositeForme.remove(numPointToCheck);
+					oppositePointsIdx.remove(numPointToCheck);
 					// TODOAFTER: remove the point if geometry permit it.
 				} else {
 					numPointToCheck++;
@@ -127,6 +135,37 @@ public class JointPose extends JointRotation {
 			} else {
 				numPointToCheck++;
 			}
+		}
+		if(points.size()==1){
+			//change our joint
+			f.joint = new JointPonctuel(f, points.get(0), pointsIdx.get(0), oppositeForme.get(0), oppositePointsIdx.get(0));
+		}else if(points.size()==0){
+			f.joint = new JointFreeFlight(f);
+		}
+	}
+
+
+	@Override
+	public void removeCollisionPoint(Vector3f pointCollision, int idx) {
+		int numPointToCheck = 0;
+		while (numPointToCheck < points.size()) {
+				Vector3f point = points.get(numPointToCheck);
+//				System.out.println("Remove point, check if "+point +" == "+pointCollision + " ("+point.distance(pointCollision)+")");
+				if(point.distance(pointCollision) < 0.0001f){
+					points.remove(numPointToCheck);
+					pointsIdx.remove(numPointToCheck);
+					oppositeForme.remove(numPointToCheck);
+					oppositePointsIdx.remove(numPointToCheck);
+					System.out.println("remove "+pointCollision);
+					break;
+				}
+				numPointToCheck++;
+		}
+		if(points.size()==1){
+			//change our joint
+			f.joint = new JointPonctuel(f, points.get(0), pointsIdx.get(0), oppositeForme.get(0), oppositePointsIdx.get(0));
+		}else if(points.size()==0){
+			f.joint = new JointFreeFlight(f);
 		}
 	}
 
@@ -151,9 +190,9 @@ public class JointPose extends JointRotation {
 		// set aang
 		// moment of intertia: boule = mr²*2/5 tige(rot extrem): mL²/3 (4mr²/3)
 		// pavé (sur axe x): m*(y²+z²)/12
-		Vector3f accelAngul = rotationForceVector.divideLocal((float) (f.roundBBRayon * f.roundBBRayon * f.mass / 2));
+		Vector3f accelAngul = rotationForceVector.divideLocal(f.getIntertiaMoment());
 		System.out.println("move with force = " + rotationForceVector.length());
-		System.out.println("divide with = " + (float) (f.roundBBRayon * f.roundBBRayon * f.mass / 2));
+		System.out.println("divide with = " + f.getIntertiaMoment());
 		System.out.println("move with accel = " + accelAngul.length());
 		f.aangulaire.addLocal(accelAngul);
 	}
@@ -671,10 +710,12 @@ public class JointPose extends JointRotation {
 	}
 
 	@Override
-	public void addCollisionPoint(Vector3f pointCollision, int idx) {
+	public void addCollisionPoint(Vector3f pointCollision, int idx, Forme fOpposite, int idxOpposite) {
 		System.out.println("Joint pose has now " + pointCollision + " at idx " + idx);
 		this.points.add(pointCollision);
 		this.pointsIdx.add(idx);
+		this.oppositeForme.add(fOpposite);
+		this.oppositePointsIdx.add(idxOpposite);
 		this.needToRecompute = true;
 	}
 
@@ -693,6 +734,15 @@ public class JointPose extends JointRotation {
 			//rot autour d'un axe?
 			return 1;
 		}
+	}
+
+	@Override
+	public void gotoCollision(int pointIdx, Vector3f pointObj) {
+		//don't move if in equilibrium.
+		if(idxL == -1 && idxR == -1){
+			return;
+		}
+		super.gotoCollision(pointIdx, pointObj);
 	}
 
 }

@@ -2,7 +2,9 @@ package joint;
 
 import old.Forme;
 
+import com.jme3.math.FastMath;
 import com.jme3.math.Matrix4f;
+import com.jme3.math.Plane;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
@@ -46,34 +48,66 @@ public abstract class JointRotation extends Joint {
 //		System.out.println("previousPs: "+f.position);
 		Vector3f newSpeed = newRot.toTranslationVector();
 		
-		//should be done in update (to check possible collisions...
-		//			f.position.addLocal(newSpeed);
 
-		//recalage sur les points de rotation
-		
-//		System.out.println("correctedPs: "+f.position);
-//		f.transfoMatrix.set(newRot.multLocal(f.transfoMatrix));
-//		Vector3f lastPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size()-1)));
-		System.out.println("JointRotation Point: "+f.transfoMatrix.mult(new Vector3f(f.points.get(f.points.size()-1))));
-//		System.out.println("JointRotation Point lastPosPoint: "+lastPos);
-//		System.out.println("JointRotation Point curentPosPoint: "+lastPosPoint);
-//		System.out.println("JointRotation Point diff: "+lastPosPoint.distance(lastPos));
-//		lastPos.set(lastPosPoint);
-		//as it's an integration =>notlinear, discrete (via dt), replace the point at the good place
-
-//		preciseTrsf.setTransform(f.position.toVec3f(), Vector3f.UNIT_XYZ,
-//				f.pangulaire.toRotationMatrix());
-		
-//		Vector3f newPosPoint = preciseTrsf.mult(new Vector3f(f.points.get(f.points.size()-1)));
-//		newSpeed.addLocal(lastPosPoint.subtractLocal(newPosPoint));
-		//f.position.addLocal(lastPosPoint);
-		//TODO: plus qu'un point
-
-		//utile pour le calcul de collision
+		//vitesse lineaire, pour garder le centre de rotation à peu près où il faut.
 		f.vitesse.set(newSpeed.mult(10)); ///???? *10?
 		System.out.println("JointRotation : speed now "+f.vitesse+" on "+f);
 		System.out.println("JointRotation : speed displacement this turn "+f.vitesse.mult(dts).length());
 	}
 //	Vector3f lastPos = new Vector3f();
+	
+	@Override
+	public void gotoCollision(int pointIdx, Vector3f pointObj) {
+		//get world pos
+		Vector3f WP = new Vector3f();
+		Vector3f LP = f.points.get(pointIdx);
+		f.transfoMatrix.mult(LP, WP);
+		
+		Vector3f VP = pointObj;
+		Vector3f WR = pointRotation;
+		Vector3f LR = f.transfoMatrix.invert().mult(pointRotation);
+		Vector3f WR2VP = VP.subtract(WR);
+		//now we need to find the point PP
+		// PP is the position of WP in the line WR,VP 
+//		Ray rayonObjectif = new Ray(WR, VP.subtract(WR));
+		Plane planObjectif = new Plane();
+		planObjectif.setOriginNormal(WR, WR2VP.cross(f.vangulaire).normalizeLocal());
+//		Plane planObjectif2 = new Plane();
+//		planObjectif2.setOriginNormal(WR, WR2VP.cross(f.vangulaire));
+
+		//TODOAFTER
+		//as it's hard to me to figure it our right now, i just incrementally adjust the position of the object
+		float vitesse = f.vangulaire.cross(LP).addLocal(f.vitesse).length();
+//		float distance = FastMath.sqrt(rayonObjectif.distanceSquared(WP));
+		float distance = planObjectif.pseudoDistance(WP);
+		float dts = distance / vitesse; // distance / speed => m / m/s => s
+		while(FastMath.abs(distance)>0.00005f){
+			System.out.println("WP="+WP+", VP="+VP+", dist="+distance+" vitesse="+vitesse+" dts="+dts);
+			rotateALittle(dts, LR);
+			//relance
+			f.transfoMatrix.mult(LP, WP);
+			distance = planObjectif.pseudoDistance(WP);
+			dts = 0.99f*distance / vitesse;
+		}
+		System.out.println("end recalage with precision@"+FastMath.abs(distance));
+		System.out.println("WP: "+WP+", obj : " + planObjectif.getClosestPoint(WP));
+	}
+	
+	private void rotateALittle(float dts, Vector3f localCenterOfRotation){
+		//linear
+		f.calculF.set(f.vitesse).multLocal(dts);
+		f.position.addLocal(f.calculF);
+		System.out.println("MOVE : " + f.calculF);
+		//angular
+		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
+		f.pangulaire.multLocal(quaterAdd);
+		f.pangulaire.normalizeLocal();
+		//matrix
+		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
+			f.pangulaire.toRotationMatrix());
+		//recalage au cas ou : keep le centre de rotation FIXE a tout prix
+		f.position.addLocal(pointRotation.subtract(f.transfoMatrix.mult(localCenterOfRotation)));
+		f.transfoMatrix.setTranslation(f.position.toVec3fLocal(f.calculF));
+	}
 
 }
