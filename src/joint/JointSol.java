@@ -1,5 +1,6 @@
 package joint;
 
+import com.jme3.math.Plane;
 import com.jme3.math.Vector3f;
 
 import old.Forme;
@@ -35,6 +36,16 @@ public class JointSol extends Joint {
 
 	@Override
 	public void gotoCollision(int pointIdx, Vector3f pointObj) {
+		// NOP
+	}
+
+	@Override
+	public void gotoCollision(int pointIdx, Plane planeObj) {
+		// NOP
+	}
+
+	@Override
+	public void gotoCollision(Vector3f localTA, Vector3f localTB, Vector3f localTC, Vector3f worldObj){
 		// NOP
 	}
 

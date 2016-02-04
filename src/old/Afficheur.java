@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 import jme3Double.Vector3d;
+import joint.JointPose;
 
 import collision.CollisionUpdater;
 
@@ -70,17 +71,19 @@ public class Afficheur extends JComponent {
 		f.triangles.add(new Triangle(f,6, 7, 4));
 		f.triangles.add(new Triangle(f,2,6,7));
 		f.triangles.add(new Triangle(f,7,3,2));
-		f.roundBBRayon = 120;
-		f.position.set(-50,0,0);
 		//f.pangulaire = new Quaternion().fromAngleAxis(FastMath.PI*32f/180, Vector3f.UNIT_Z);
 		f.forces.add(new Vector3f(0.000000f,-9.81f,0).mult((float)f.mass));
 //		f.acceleration.set(0.000000f,-0.00000981f,0);
 		//f.vangulaire.set(0,0.001f,0); //1 rotation toute les 5sec
 		f.physicUpdate = true;
 		f.landed = false;
+		f.roundBBRayon = 12;
+		f.position.set(-5,0,0);
+		for(Vector3f vect : f.points){
+			vect.divideLocal(10);
+		}
 		f.doNotFaceCenter();
 		view.formes.add(f);
-		
 		
 		//sol
 
@@ -119,11 +122,14 @@ public class Afficheur extends JComponent {
 //		f.points.add(new Vector3f(-80, 10, 20)); //11
 //		f.points.add(new Vector3f(-80, 10, -20)); //12
 //		f.points.add(new Vector3f(-100, 100, 0)); //13
-		f.roundBBRayon = 250;
-		f.position.set(0,-200,0);
 		f.triangles.add(new Triangle(f,10, 13, 11));
 		f.triangles.add(new Triangle(f,11, 13, 12));
 		f.triangles.add(new Triangle(f,12, 13, 10));
+		f.roundBBRayon = 25;
+		f.position.set(0,-20,0);
+		for(Vector3f vect : f.points){
+			vect.divideLocal(10);
+		}
 		f.doNotFaceCenter();
 		view.formes.add(f);
 
@@ -176,14 +182,79 @@ public class Afficheur extends JComponent {
 					int diff = (int)(currentMs-previousMs);
 //					System.out.println("diff: "+diff +" = "+currentMs+" - "+previousMs);
 					System.out.println("NEW TURN ---------------------------------------------------------------------------------");
-					//calculate
+					
+					//changements de forces ici!! (user input)
+					
+
+					
+					//apply gravity
+					Vector3f force = new Vector3f(0,0,0);
+					Vector3f aforce = new Vector3f(0,0,0);
+					if(view.keyPress == KeyEvent.VK_Q){
+						force.set(20000,20000,0);
+					}
+					if(view.keyPress == KeyEvent.VK_D){
+						force.set(-20000,20000,0);
+					}
+					if(view.keyPress == KeyEvent.VK_Z){
+						force.set(0,200000,0);
+					}
+					if(view.keyPress == KeyEvent.VK_R){
+						aforce.set(0,0,-20000);
+					}
+					for(Forme f : view.formes){
+						while(f.forces.size()>1){
+							f.forces.remove(f.forces.size()-1);
+						}
+						if(!f.landed) f.forces.add(force);
+						f.angularForces.clear();
+						f.angularForces.add(aforce);
+						f.physicUpdate = true;
+					}
+					previousMs = currentMs;
+					
+					
+					//calculate force & accel (and some speed)
 					for(Forme f : view.formes){
 						System.out.println("forme "+f +"@"+f.position);
+						if(f.joint instanceof JointPose){
+							JointPose joint = (JointPose) f.joint;
+							System.out.println("Check affb tri "+f+" : ");
+							int numPointToCheckAeff = 0;
+							while (numPointToCheckAeff < joint.points.size()) {
+									Vector3f point = joint.points.get(numPointToCheckAeff);
+									System.out.println("Joint pose already has : " + point + ".distance("
+											+ f.transfoMatrix.mult(f.points.get(joint.pointsIdx.get(numPointToCheckAeff))) 
+											+ ") ="+point.distance(f.transfoMatrix.mult(f.points.get(joint.pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
+								numPointToCheckAeff ++;
+							}
+						}
+						
 						//update forces & accels vector (sometimes even speed ones)
 						f.joint.update(currentMs, diff);
+						System.out.println("f.joint.update edned "+f +"@"+f.position +" == "+f.joint.f+"@"
+								+f.joint.f.position);
 //						f.update(5*diff/2);
 					}
-					
+
+					for(Forme f : view.formes){
+						System.out.println("forme "+f +"@"+f.position);
+						
+
+						if(f.joint instanceof JointPose){
+							JointPose joint = (JointPose) f.joint;
+							System.out.println("Check affc tri "+f+" : ");
+							int numPointToCheckAeff = 0;
+							while (numPointToCheckAeff < joint.points.size()) {
+									Vector3f point = joint.points.get(numPointToCheckAeff);
+									System.out.println("Joint pose already has : " + point + ".distance("
+											+ f.transfoMatrix.mult(f.points.get(joint.pointsIdx.get(numPointToCheckAeff))) 
+											+ ") ="+point.distance(f.transfoMatrix.mult(f.points.get(joint.pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
+								numPointToCheckAeff ++;
+							}
+						}
+						
+					}
 					//check collision & update positions
 					updater.updateCollision(currentMs, diff);
 
@@ -218,31 +289,6 @@ public class Afficheur extends JComponent {
 //							}
 //						}
 //					}
-					
-					//apply gravity
-					Vector3f force = new Vector3f(0,0,0);
-					Vector3f aforce = new Vector3f(0,0,0);
-					if(view.keyPress == KeyEvent.VK_Q){
-						force.set(20000,20000,0);
-					}
-					if(view.keyPress == KeyEvent.VK_D){
-						force.set(-20000,20000,0);
-					}
-					if(view.keyPress == KeyEvent.VK_Z){
-						force.set(0,200000,0);
-					}
-					if(view.keyPress == KeyEvent.VK_R){
-						aforce.set(0,0,-200000);
-					}
-					for(Forme f : view.formes){
-						while(f.forces.size()>1){
-							f.forces.remove(f.forces.size()-1);
-						}
-						if(!f.landed) f.forces.add(force);
-						f.angularForces.clear();
-						f.angularForces.add(aforce);
-					}
-					previousMs = currentMs;
 				}
 			}
 		}.start();
@@ -258,7 +304,7 @@ public class Afficheur extends JComponent {
 		// g.setColor(Color.RED);
 		// g.fillOval(0, 0, 400, 400);
 
-		int maxY = getHeight() / 2;
+		int maxY = getHeight() / 3;
 		int maxX = getWidth() / 2;
 
 		int taille = 10;
@@ -274,9 +320,9 @@ public class Afficheur extends JComponent {
 //				System.out.println("m = "+forme.points.get(tri.a));
 //				System.out.println("m = "+forme.transfoMatrix.mult(forme.points.get(tri.a), null));
 				
-				Vector3f m = forme.transfoMatrix.mult(forme.points.get(tri.a), null);
-				Vector3f n = forme.transfoMatrix.mult(forme.points.get(tri.b), null);
-				Vector3f e = forme.transfoMatrix.mult(forme.points.get(tri.c), null);
+				Vector3f m = forme.transfoMatrix.mult(forme.points.get(tri.a), null).multLocal(taille);
+				Vector3f n = forme.transfoMatrix.mult(forme.points.get(tri.b), null).multLocal(taille);
+				Vector3f e = forme.transfoMatrix.mult(forme.points.get(tri.c), null).multLocal(taille);
 				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
 						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
 						maxY - (int) (n.y + n.z / 2));
@@ -287,28 +333,29 @@ public class Afficheur extends JComponent {
 						- (int) (m.y + m.z / 2), maxX + (int) (e.x + e.z / 2),
 						maxY - (int) (e.y + e.z / 2));
 			}
-			g.setColor(Color.RED);
+			g.setColor(Color.BLUE);
 			if(forme.vitesse.lengthSquared() != 0){
-				Vector3f m = forme.vitesse.mult(1000).addLocal(forme.position.toVec3f());
-				Vector3f n = forme.position.toVec3f();
+				Vector3f m = forme.vitesse.mult(1000).addLocal(forme.position.toVec3f().multLocal(taille));
+				Vector3f n = forme.position.toVec3f().multLocal(taille);
 				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
 						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
 						maxY - (int) (n.y + n.z / 2));
 			}
+			g.setColor(Color.RED);
 			if(forme.vangulaire.lengthSquared() != 0){
-				Vector3f m = forme.vangulaire.mult(1000).addLocal(forme.position.toVec3f());
-				Vector3f n = forme.position.toVec3f();
+				Vector3f m = forme.vangulaire.mult(1000).addLocal(forme.position.toVec3f().multLocal(taille));
+				Vector3f n = forme.position.toVec3f().multLocal(taille);
 				//draw the rotaion vector?
 //				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
 //						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
 //						maxY - (int) (n.y + n.z / 2));
 				for (Vector3f point : forme.points) {
-					m = forme.transfoMatrix.mult(point, null);
-					Vector3f om = m.subtract(forme.position.toVec3f());
-					Vector3f rotVect = forme.vangulaire.mult(1000).crossLocal(om);
+					m = forme.transfoMatrix.mult(point, null).multLocal(taille);
+					Vector3f om = m.subtract(forme.position.toVec3f().multLocal(taille));
+					Vector3f rotVect = forme.vangulaire.mult(100).crossLocal(om);
 					n = rotVect.addLocal(m);
 					//compound vith velocity?
-//					n.addLocal(forme.vitesse.mult(1000));
+					n.addLocal(forme.vitesse.mult(100));
 					//draw each point of rotation
 					g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
 							- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),

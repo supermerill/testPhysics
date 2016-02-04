@@ -3,6 +3,7 @@ package joint;
 import jme3Double.Vector3d;
 import old.Forme;
 
+import com.jme3.math.Plane;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
@@ -107,7 +108,30 @@ public class JointFreeFlight extends Joint {
 
 	@Override
 	public void removeCollisionPoint(Vector3f pointCollision, int idx) {
-		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void gotoCollision(int pointIdx, Plane planeObj) {
+		Vector3f worldPos = new Vector3f();
+		f.transfoMatrix.mult(f.points.get(pointIdx), worldPos);
+		Vector3f pointObj = planeObj.getClosestPoint(worldPos);
+		System.out.println("  worldPos="+worldPos+" to pointObj="+pointObj);
+		f.position.addLocal(new Vector3d(pointObj.subtract(worldPos)));
+		f.transfoMatrix.setTranslation(f.position.toVec3f());
+	}
+
+	@Override
+	public void gotoCollision(Vector3f localTA, Vector3f localTB, Vector3f localTC, Vector3f worldObj) {
+		Plane p = new Plane();
+		Vector3f tempA = f.transfoMatrix.mult(localTA, new Vector3f());
+		Vector3f tempB = f.transfoMatrix.mult(localTB, new Vector3f());
+		Vector3f tempC = f.transfoMatrix.mult(localTC, new Vector3f());
+		p.setPlanePoints(tempA, tempB, tempC);
+		Vector3f worldPos =p.getClosestPoint(worldObj);
+		System.out.println("  worldPos="+worldPos+" to pointObj="+worldObj);
+		f.position.addLocal(new Vector3d(worldObj.subtract(worldPos)));
+		f.transfoMatrix.setTranslation(f.position.toVec3f());
 		
+		//TODO: faire un peu de rotation en meme temps!
 	}
 }

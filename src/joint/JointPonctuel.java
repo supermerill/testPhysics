@@ -43,12 +43,20 @@ public class JointPonctuel extends JointRotation {
 	public void updatePosition(long instant, long dt) {
 		super.updatePosition(instant, dt);
 		// recaler le solide
-		f.position
-				.addLocal(pointRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(f.points.size() - 1)))));
+		System.out.println("BeforeRecalage : " + pointRotation + ".distance("
+				+ f.transfoMatrix.mult(f.points.get(idxPoint)) 
+				+ ") ="+pointRotation.distance(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+		System.out.println("UpdatePos : recalage from "+f+"@"+f.position
+				+" of "+pointRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+		f.position.addLocal(pointRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
 		// check if it has moved (more than 0.1mm)
 		if (freeFlight) {
 			f.joint = new JointFreeFlight(f);
 		}
+		System.out.println("AfterRecalage : " + pointRotation + ".distance("
+				+ f.transfoMatrix.mult(f.points.get(idxPoint)) 
+				+ ") ="+pointRotation.distance(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+		
 	}
 
 	@Override

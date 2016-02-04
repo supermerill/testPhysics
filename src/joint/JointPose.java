@@ -109,21 +109,41 @@ public class JointPose extends JointRotation {
 		// // utile pour le calcul de collision
 		// f.vitesse.set(newSpeed);
 		// System.out.println("JointPose : speed now " + newSpeed);
+
+		int numPointToCheckAeff = 0;
+		while (numPointToCheckAeff < points.size()) {
+			if (numPointToCheckAeff != idxL && numPointToCheckAeff != idxR) {
+				Vector3f point = points.get(numPointToCheckAeff);
+				System.out.println("PRE CHECK POINT POSE : " + point + ".distance("
+						+ f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheckAeff))) 
+						+ ") ="+point.distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
+			}
+			numPointToCheckAeff ++;
+		}
+		
+		System.out.println("POSE JOINT updatepos call super UpdatePos "+f +"@"+f.position);
 		super.updatePosition(instant, dt);
+		System.out.println("POSE JOINT updatepos end call super UpdatePos "+f +"@"+f.position);
 
 		// remove points collision when needed
 		int numPointToCheck = 0;
 		while (numPointToCheck < points.size()) {
 			if (numPointToCheck != idxL && numPointToCheck != idxR) {
 				Vector3f point = points.get(numPointToCheck);
+				System.out.println("CHECK POINT POSE : " + point + ".distance("
+						+ f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck))) 
+						+ ") ="+point.distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck))))+" > 0.0001");
 				// check if it has moved (more than 0.1mm)
 				if (point.distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck)))) > 0.0001) {
 					System.out.println("UNDO COLISION POINT : " + point + ".distance("
-							+ f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck))) + ") > 0.0001");
+							+ f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck))) 
+							+ ") ="+point.distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheck))))+" > 0.0001");
 					points.remove(numPointToCheck);
 					pointsIdx.remove(numPointToCheck);
 					
 					//remove the same point in the other forme.
+					System.out.println("request removeCollisionPoint on "+oppositeForme.get(numPointToCheck)
+							+" with class "+oppositeForme.get(numPointToCheck).joint);
 					oppositeForme.get(numPointToCheck).joint.removeCollisionPoint(point, oppositePointsIdx.get(numPointToCheck));
 
 					oppositeForme.remove(numPointToCheck);
@@ -142,25 +162,38 @@ public class JointPose extends JointRotation {
 		}else if(points.size()==0){
 			f.joint = new JointFreeFlight(f);
 		}
+		System.out.println("POSE JOINT updateforme end UpdatePos "+f +"@"+f.position);
 	}
 
 
 	@Override
 	public void removeCollisionPoint(Vector3f pointCollision, int idx) {
-		int numPointToCheck = 0;
-		while (numPointToCheck < points.size()) {
-				Vector3f point = points.get(numPointToCheck);
-//				System.out.println("Remove point, check if "+point +" == "+pointCollision + " ("+point.distance(pointCollision)+")");
-				if(point.distance(pointCollision) < 0.0001f){
-					points.remove(numPointToCheck);
-					pointsIdx.remove(numPointToCheck);
-					oppositeForme.remove(numPointToCheck);
-					oppositePointsIdx.remove(numPointToCheck);
-					System.out.println("remove "+pointCollision);
-					break;
-				}
-				numPointToCheck++;
+		System.out.println("Remove point @"+pointCollision+"idx="+idx);
+		for(int i=0;i<points.size(); i++){
+			if(pointsIdx.get(i) == idx){
+				points.remove(i);
+				pointsIdx.remove(i);
+				oppositeForme.remove(i);
+				oppositePointsIdx.remove(i);
+				System.out.println("remove "+i);
+				break;
+			}
 		}
+		
+//		int numPointToCheck = 0;
+//		while (numPointToCheck < points.size()) {
+//				Vector3f point = points.get(numPointToCheck);
+////				System.out.println("Remove point, check if "+point +" == "+pointCollision + " ("+point.distance(pointCollision)+")");
+//				if(point.distance(pointCollision) < 0.0001f){
+//					points.remove(numPointToCheck);
+//					pointsIdx.remove(numPointToCheck);
+//					oppositeForme.remove(numPointToCheck);
+//					oppositePointsIdx.remove(numPointToCheck);
+//					System.out.println("remove "+pointCollision);
+//					break;
+//				}
+//				numPointToCheck++;
+//		}
 		if(points.size()==1){
 			//change our joint
 			f.joint = new JointPonctuel(f, points.get(0), pointsIdx.get(0), oppositeForme.get(0), oppositePointsIdx.get(0));
@@ -171,7 +204,9 @@ public class JointPose extends JointRotation {
 
 	@Override
 	public void updateForce(long instant, long dt) {
-		if (needToRecompute) {
+		System.out.println("POSE JOINT updateForce UpdatePos "+f +"@"+f.position);
+
+		if (needToRecompute || f.physicUpdate || true) {
 			if (this.points.size() == 1) {
 				// JointPonctuel
 				System.err.println("joint ponctuel instead of jointpose");
@@ -195,6 +230,7 @@ public class JointPose extends JointRotation {
 		System.out.println("divide with = " + f.getIntertiaMoment());
 		System.out.println("move with accel = " + accelAngul.length());
 		f.aangulaire.addLocal(accelAngul);
+		System.out.println("POSE JOINT updateforce end UpdatePos "+f +"@"+f.position);
 	}
 
 	public void updateForceNoMax(long instant, long dt) {
@@ -711,6 +747,15 @@ public class JointPose extends JointRotation {
 
 	@Override
 	public void addCollisionPoint(Vector3f pointCollision, int idx, Forme fOpposite, int idxOpposite) {
+		System.out.println("Joint for f "+f);
+		int numPointToCheckAeff = 0;
+		while (numPointToCheckAeff < points.size()) {
+				Vector3f point = points.get(numPointToCheckAeff);
+				System.out.println("Joint pose already has : " + point + ".distance("
+						+ f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheckAeff))) 
+						+ ") ="+point.distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
+			numPointToCheckAeff ++;
+		}
 		System.out.println("Joint pose has now " + pointCollision + " at idx " + idx);
 		this.points.add(pointCollision);
 		this.pointsIdx.add(idx);

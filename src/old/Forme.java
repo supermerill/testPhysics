@@ -66,7 +66,7 @@ public class Forme {
 	public ArrayList<Triangle> triangles = new ArrayList<>();
 	
 	//temp vars (remove this alter)
-	Vector3d calcul1 = new Vector3d();
+	public Vector3d calcul1 = new Vector3d();
 	public Vector3f calculF = new Vector3f();
 	
 	public CollisionMobileSol checkCollision(Forme f2){
