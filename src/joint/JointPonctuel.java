@@ -33,29 +33,36 @@ public class JointPonctuel extends JointRotation {
 
 	public JointPonctuel(Forme f, Vector3f pointCollision, int idx, Forme fOpposite, int idxOpposite) {
 		super(f);
-		this.pointRotation = pointCollision;
+		this.pointWRotation.set(pointCollision);
 		this.idxPoint = idx;
+		this.pointLRotation.set(f.points.get(idx));
 		this.fOpposite = fOpposite;
 		this.idxOpposite = idxOpposite;
+		
+
+		System.out.println("JP new Joint ponctuel has: "+f+" : " + pointWRotation + ".distance("
+				+f.transfoMatrix.mult(pointLRotation)
+				+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(pointLRotation))+" > 0.0001");
 	}
 
 	@Override
 	public void updatePosition(long instant, long dt) {
 		super.updatePosition(instant, dt);
 		// recaler le solide
-		System.out.println("BeforeRecalage : " + pointRotation + ".distance("
+		System.out.println("BeforeRecalage : " + pointWRotation + ".distance("
 				+ f.transfoMatrix.mult(f.points.get(idxPoint)) 
-				+ ") ="+pointRotation.distance(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+				+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
 		System.out.println("UpdatePos : recalage from "+f+"@"+f.position
-				+" of "+pointRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
-		f.position.addLocal(pointRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+				+" of "+pointWRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+		f.position.addLocal(pointWRotation.subtract(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+		f.transfoMatrix.setTranslation(f.position.toVec3f());
 		// check if it has moved (more than 0.1mm)
 		if (freeFlight) {
 			f.joint = new JointFreeFlight(f);
 		}
-		System.out.println("AfterRecalage : " + pointRotation + ".distance("
+		System.out.println("AfterRecalage : " + pointWRotation + ".distance("
 				+ f.transfoMatrix.mult(f.points.get(idxPoint)) 
-				+ ") ="+pointRotation.distance(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
+				+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(new Vector3f(f.points.get(idxPoint)))));
 		
 	}
 
@@ -72,7 +79,7 @@ public class JointPonctuel extends JointRotation {
 		}
 
 		// create the normal force (via a dot)
-		Vector3f normalN = f.position.toVec3f().subtractLocal(pointRotation);
+		Vector3f normalN = f.position.toVec3f().subtractLocal(pointWRotation);
 		normalN.normalizeLocal();
 		Vector3f normal = normalN.mult(normalN.dot(sumForce));
 		System.out.println("normaleN : " + normalN);
@@ -84,6 +91,7 @@ public class JointPonctuel extends JointRotation {
 		} else {
 
 			// create rotationVector
+			/// ???
 			Vector3f rotVector = normalN.cross(sumForce.normalize()).mult(sumForce.length() - normal.length());
 			rotVector.divideLocal(f.getIntertiaMoment());
 			f.aangulaire.addLocal(rotVector);
@@ -129,11 +137,11 @@ public class JointPonctuel extends JointRotation {
 
 	@Override
 	public void addCollisionPoint(Vector3f pointCollision, int idx, Forme fOpposite, int idxOpposite) {
-		assert !pointCollision.equals(pointRotation) : "Error, add on the existing rotation point";
-		System.out.println("joint ponctuel:@" + pointRotation + " : add " + pointCollision);
+		assert !pointCollision.equals(pointWRotation) : "Error, add on the existing rotation point";
+		System.out.println("joint ponctuel:@" + pointWRotation + " : add " + pointCollision);
 		f.joint = new JointPose(f);
 		//TODO
-		f.joint.addCollisionPoint(this.pointRotation, this.idxPoint, this.fOpposite, this.idxOpposite);
+		f.joint.addCollisionPoint(this.pointWRotation, this.idxPoint, this.fOpposite, this.idxOpposite);
 		f.joint.addCollisionPoint(pointCollision, idx, fOpposite, idxOpposite);
 
 	}

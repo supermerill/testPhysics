@@ -368,6 +368,12 @@ public class CollisionUpdater {
 						numPointToCheckAeff ++;
 					}
 				}
+				if(pred.formeTri.joint instanceof JointPonctuel){
+					JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
+					System.out.println("Joint ponctuelP has : " + joint.pointWRotation + ".distance"+joint.pointLRotation+"("
+							+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
+							+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+				}
 
 				if(pred.formePoint.joint instanceof JointPose){
 					JointPose joint = (JointPose) pred.formePoint.joint;
@@ -380,6 +386,12 @@ public class CollisionUpdater {
 									+ ") ="+point.distance(pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(joint.pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
 						numPointToCheckAeff ++;
 					}
+				}
+				if(pred.formePoint.joint instanceof JointPonctuel){
+					JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
+					System.out.println("Joint ponctuelT has : " + joint.pointWRotation + ".distance"+joint.pointLRotation+"("
+							+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
+							+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
 				}
 
 				// move to collision point
@@ -426,10 +438,6 @@ public class CollisionUpdater {
 				System.out.println("vitP=" + vitP + ", vitT=" + vitT + ", totalVit=" + totalVit);
 				System.out.println("formeTri %vit : " + percentVitT);
 				// percentVitP+percentVitT is >= 1
-
-				//aeff: wrong test
-				
-				/TODO: faire faire cela par les joints! on ne sais pas recalibrer nous-même!
 				
 				// System.out.println("previous FormePoint : " +
 				// pred.formePoint.position);
@@ -452,6 +460,7 @@ public class CollisionUpdater {
 					// pred.formePoint.position.toVec3fLocal(pred.formePoint.calculF),
 					// Vector3f.UNIT_XYZ,
 					// pred.formePoint.pangulaire.toRotationMatrix());
+					pred.formePoint.joint.updatePosition(currentTime, (long)(dts*(double)percentVitP));
 				}
 				System.out.println("after FormePoint : " + pred.formePoint.position);
 				System.out.println("after PointPos : " + pred.formePoint.transfoMatrix.mult(pred.localP));
@@ -485,6 +494,7 @@ public class CollisionUpdater {
 					// pred.formeTri.transfoMatrix.setTransform(pred.formeTri.position.toVec3fLocal(pred.formeTri.calculF),
 					// Vector3f.UNIT_XYZ,
 					// pred.formeTri.pangulaire.toRotationMatrix());
+					pred.formePoint.joint.updatePosition(currentTime, (long)(dts*(double)percentVitT));
 				}
 				System.out.println("after formeTri : " + pred.formeTri.position);
 				System.out.println("after PointPos(tri) : " + pred.formePoint.transfoMatrix.mult(pred.localP));
@@ -499,7 +509,18 @@ public class CollisionUpdater {
 				// if any, do ???
 				// TODOAFTER
 
-				//aeff: wrong test
+				if(pred.formeTri.joint instanceof JointPonctuel){
+					JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
+					System.out.println("2Joint ponctuel has : " + joint.pointWRotation + ".distance("
+							+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
+							+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+				}
+				if(pred.formePoint.joint instanceof JointPonctuel){
+					JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
+					System.out.println("2Joint ponctuel has : " + joint.pointWRotation + ".distance("
+							+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
+							+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+				}
 					
 
 				// just check if on the same plane, or almost
@@ -592,8 +613,12 @@ public class CollisionUpdater {
 				// joint.point = pred.bestP;
 				// pred.formePoint.joint.add(joint);
 				// pred.formeTri.joint.add(joint);
+				System.out.println("CU add a new colision point (P): "+pred.formePoint+" : "+tempP+" == "
+				+pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(pred.pointIdx)));
 				pred.formePoint.joint.addCollisionPoint(tempP, pred.pointIdx, 
 						pred.formeTri,  idxNewPointInTri);
+				System.out.println("CU add a new colision point (T): "+pred.formeTri+" : "+pred.bestP+" == "
+				+pred.formeTri.transfoMatrix.mult(pred.formeTri.points.get(idxNewPointInTri)));
 				pred.formeTri.joint.addCollisionPoint(pred.bestP, idxNewPointInTri,
 						pred.formePoint, pred.pointIdx);
 
@@ -615,6 +640,20 @@ public class CollisionUpdater {
 				// joint.computeJointForce(pred.formePoint);
 				// joint.computeJointForce(pred.formeTri);
 
+
+				if(pred.formeTri.joint instanceof JointPonctuel){
+					JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
+					System.out.println("CU 3Joint ponctuel has (T): " + joint.pointWRotation + ".distance("
+							+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
+							+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+				}
+				if(pred.formePoint.joint instanceof JointPonctuel){
+					JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
+					System.out.println("CU 3Joint ponctuel has (P): " + joint.pointWRotation + ".distance("
+							+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
+							+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+				}
+				
 
 			}
 
@@ -694,8 +733,8 @@ public class CollisionUpdater {
 				.subtractLocal(pred.formePoint.position.toVec3f())).negateLocal();
 
 		System.out.println("vitesseP2T="+vitesseP2T);
-		System.out.println("vitesseATN="+vitesseATN);
-		System.out.println("vitesseAP="+vitesseAP);
+		System.out.println("vitesseATN="+vitesseATN+", rotVector="+pred.formeTri.vangulaire);
+		System.out.println("vitesseAP="+vitesseAP+", rotVector="+pred.formePoint.vangulaire);
 		System.out.println("pred.formePoint.position="+pred.formePoint.position);
 		System.out.println("pred.formeTri.position="+pred.formeTri.position);
 		Vector3f velocityTot = vitesseP2T.add(vitesseAP).subtractLocal(vitesseATN);
@@ -762,7 +801,7 @@ public class CollisionUpdater {
 		
 		
 
-		if (pred.bestP.subtract(pred.worldP).dot(velocityTot) >0 && pred.bestP.distance(pred.worldP) < velocityTot.length() * dts) {
+		if (pred.bestP.subtract(pred.worldP).dot(velocityTot) >0 && pred.bestP.distance(pred.worldP) < velocityTot.length() * dts * 1.05f /* hate rounding errors */) {
 			// it collide!
 			System.out.println("==================COLLIDE============================");
 

@@ -13,7 +13,8 @@ import com.jme3.math.Vector3f;
 public abstract class JointRotation extends Joint {
 
 	//the point-joint
-	public Vector3f pointRotation = new Vector3f(0,0,0); //World coord
+	public Vector3f pointWRotation = new Vector3f(0,0,0); //World coord
+	public Vector3f pointLRotation = new Vector3f(0,0,0); //World coord
 	
 	
 	public JointRotation(Forme f) {
@@ -34,7 +35,7 @@ public abstract class JointRotation extends Joint {
 		Matrix4f preciseTrsf = new Matrix4f();
 		preciseTrsf.setTransform(f.position.toVec3f(), Vector3f.UNIT_XYZ, f.pangulaire.toRotationMatrix());
 		
-		Vector3f transl = new Vector3f(f.transfoMatrix.invert().mult(pointRotation)).mult(1);
+		Vector3f transl = new Vector3f(f.transfoMatrix.invert().mult(pointWRotation)).mult(1);
 //		new Matrix4d(f.transfoMatrix).multNormal(transl, transl);
 		preciseTrsf.multNormal(transl, transl);
 		newRot.m03 = transl.x - newRot.m00 * transl.x - newRot.m01 * transl.y - newRot.m02
@@ -65,8 +66,8 @@ public abstract class JointRotation extends Joint {
 		Vector3f LP = f.points.get(pointIdx);
 		f.transfoMatrix.mult(LP, WP);
 		
-		Vector3f WR = pointRotation;
-		Vector3f LR = f.transfoMatrix.invert().mult(pointRotation);
+		Vector3f WR = pointWRotation;
+		Vector3f LR = pointLRotation; //f.transfoMatrix.invert().mult(pointWRotation);
 		//it's hard to me to figure it out exactly in 1 pass right now,
 		//i just incrementally adjust the position of the object
 		float vitesse = Math.abs(f.vangulaire.cross(LP).addLocal(f.vitesse).dot(planeObj.getClosestPoint(WP).subtract(WP).normalizeLocal()));
@@ -116,7 +117,7 @@ public abstract class JointRotation extends Joint {
 		Vector3f tempP = myPlane.getClosestPoint(worldObj);
 		System.out.println("example: "+tempP+" => "+worldObj);
 
-		Vector3f LR = f.transfoMatrix.invert().mult(pointRotation);
+		Vector3f LR = pointLRotation;//f.transfoMatrix.invert().mult(pointWRotation);
 		
 		//it's hard to me to figure it out exactly in 1 pass right now,
 		//i just incrementally adjust the position of the object
@@ -170,8 +171,8 @@ public abstract class JointRotation extends Joint {
 		f.transfoMatrix.mult(LP, WP);
 		
 		Vector3f VP = pointObj;
-		Vector3f WR = pointRotation;
-		Vector3f LR = f.transfoMatrix.invert().mult(pointRotation);
+		Vector3f WR = pointWRotation;
+		Vector3f LR = pointLRotation; //f.transfoMatrix.invert().mult(pointRotation);
 		Vector3f WR2VP = VP.subtract(WR);
 		//now we need to find the point PP
 		// PP is the position of WP in the line WR,VP 
@@ -227,7 +228,7 @@ public abstract class JointRotation extends Joint {
 		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
 			f.pangulaire.toRotationMatrix());
 		//recalage au cas ou : keep le centre de rotation FIXE a tout prix
-		f.position.addLocal(pointRotation.subtract(f.transfoMatrix.mult(localCenterOfRotation)));
+		f.position.addLocal(pointWRotation.subtract(f.transfoMatrix.mult(localCenterOfRotation)));
 		f.transfoMatrix.setTranslation(f.position.toVec3fLocal(f.calculF));
 	}
 	private void rotateALittle(float dts, Vector3f localCenterOfRotation){
@@ -247,7 +248,7 @@ public abstract class JointRotation extends Joint {
 		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
 			f.pangulaire.toRotationMatrix());
 		//recalage au cas ou : keep le centre de rotation FIXE a tout prix
-		f.position.addLocal(pointRotation.subtract(f.transfoMatrix.mult(localCenterOfRotation)));
+		f.position.addLocal(pointWRotation.subtract(f.transfoMatrix.mult(localCenterOfRotation)));
 		f.transfoMatrix.setTranslation(f.position.toVec3fLocal(f.calculF));
 	}
 

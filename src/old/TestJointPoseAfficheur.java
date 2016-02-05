@@ -249,7 +249,7 @@ public class TestJointPoseAfficheur extends JComponent {
 				g.fillOval((int) (maxX + pc.x + pc.y / 2) - 2, (int) (maxY - pc.z - pc.y / 2) - 2, 5, 5);
 
 				g.setColor(Color.RED);
-				pc = ((JointPose)forme.joint).pointRotation;
+				pc = ((JointPose)forme.joint).pointWRotation;
 				g.fillOval((int) (maxX + pc.x + pc.y / 2) - 2, (int) (maxY - pc.z - pc.y / 2) - 2, 5, 5);
 
 				g.setColor(Color.BLUE);

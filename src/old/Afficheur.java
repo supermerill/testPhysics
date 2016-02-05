@@ -78,7 +78,7 @@ public class Afficheur extends JComponent {
 		f.physicUpdate = true;
 		f.landed = false;
 		f.roundBBRayon = 12;
-		f.position.set(-5,0,0);
+		f.position.set(5,0,0);
 		for(Vector3f vect : f.points){
 			vect.divideLocal(10);
 		}
@@ -168,7 +168,7 @@ public class Afficheur extends JComponent {
 				while (true) {
 					
 					view.repaint();
-					nextMs += 100;
+					nextMs += 100*5;
 					// sleep for 13ms
 					if (System.currentTimeMillis() < nextMs) {
 						try {
@@ -179,7 +179,7 @@ public class Afficheur extends JComponent {
 					}
 					long currentMs = System.currentTimeMillis();
 //					System.out.println("finish sleep: "+currentMs+" =?= "+nextMs);
-					int diff = (int)(currentMs-previousMs);
+					int diff = (int)(currentMs-previousMs) /5;
 //					System.out.println("diff: "+diff +" = "+currentMs+" - "+previousMs);
 					System.out.println("NEW TURN ---------------------------------------------------------------------------------");
 					
@@ -201,6 +201,9 @@ public class Afficheur extends JComponent {
 					}
 					if(view.keyPress == KeyEvent.VK_R){
 						aforce.set(0,0,-20000);
+					}
+					if(view.keyPress == KeyEvent.VK_E){
+						aforce.set(0,0,20000);
 					}
 					for(Forme f : view.formes){
 						while(f.forces.size()>1){

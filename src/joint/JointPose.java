@@ -7,14 +7,16 @@ import java.util.List;
 
 import old.Forme;
 
-import com.jme3.math.Matrix4f;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
 public class JointPose extends JointRotation {
+	
+	public static enum State{ EQUILIBRE, ROT1P, ROT2P }
 
 	// HashMap<Integer, JointPose> linkToOtherForme = new HashMap<>();
 	boolean needToRecompute = true;
+	
+	State state = State.EQUILIBRE;
 
 	// the point-joint (s) (in world coordinates)
 	public ArrayList<Vector3f> points = new ArrayList<>();
@@ -109,6 +111,21 @@ public class JointPose extends JointRotation {
 		// // utile pour le calcul de collision
 		// f.vitesse.set(newSpeed);
 		// System.out.println("JointPose : speed now " + newSpeed);
+		
+		//recalage
+		if(state != state.EQUILIBRE){
+			//can't move in equilibre!
+			System.out.println("BeforeRecalage : " + pointWRotation + ".distance("
+					+ f.transfoMatrix.mult(pointLRotation) 
+					+ ") ="+pointWRotation.distance(f.transfoMatrix.mult((pointLRotation))));
+			System.out.println("UpdatePos : recalage from "+f+"@"+f.position
+					+" of "+pointWRotation.subtract(f.transfoMatrix.mult((pointLRotation))));
+			f.position.addLocal(pointWRotation.subtract(f.transfoMatrix.mult((pointLRotation))));
+			f.transfoMatrix.setTranslation(f.position.toVec3f());
+			System.out.println("AfterRecalage : " + pointWRotation + ".distance("
+					+ f.transfoMatrix.mult(pointLRotation) 
+					+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(pointLRotation)));
+		}
 
 		int numPointToCheckAeff = 0;
 		while (numPointToCheckAeff < points.size()) {
@@ -148,6 +165,8 @@ public class JointPose extends JointRotation {
 
 					oppositeForme.remove(numPointToCheck);
 					oppositePointsIdx.remove(numPointToCheck);
+					
+					this.needToRecompute = true;
 					// TODOAFTER: remove the point if geometry permit it.
 				} else {
 					numPointToCheck++;
@@ -204,7 +223,7 @@ public class JointPose extends JointRotation {
 
 	@Override
 	public void updateForce(long instant, long dt) {
-		System.out.println("POSE JOINT updateForce UpdatePos "+f +"@"+f.position);
+		System.out.println("JP POSE JOINT updateForce UpdatePos "+f +"@"+f.position);
 
 		if (needToRecompute || f.physicUpdate || true) {
 			if (this.points.size() == 1) {
@@ -229,6 +248,7 @@ public class JointPose extends JointRotation {
 		System.out.println("move with force = " + rotationForceVector.length());
 		System.out.println("divide with = " + f.getIntertiaMoment());
 		System.out.println("move with accel = " + accelAngul.length());
+		System.out.println("JP rotationpoint? "+super.pointWRotation+", local ="+pointLRotation);
 		f.aangulaire.addLocal(accelAngul);
 		System.out.println("POSE JOINT updateforce end UpdatePos "+f +"@"+f.position);
 	}
@@ -349,7 +369,7 @@ public class JointPose extends JointRotation {
 					normaleProjPlan.addLocal(normalePlan).subtractLocal(normalePlan2);
 				}
 				normaleProjPlan.normalizeLocal();
-				System.out.println("normaleProjPlan (check 1)=" + normaleProjPlan);
+				System.out.println("JP normaleProjPlan (check 1)=" + normaleProjPlan);
 				createRotDir(normaleProjPlan, listPoint, sumForcesN, left, right);
 				if (left.lengthSquared() == 0 && right.lengthSquared() == 0) {
 					if (!findPosNeg) {
@@ -358,12 +378,12 @@ public class JointPose extends JointRotation {
 					if (!findPosPos) {
 						normaleProjPlan.subtractLocal(normalePlan).subtractLocal(normalePlan2);
 					}
-					System.out.println("normaleProjPlan (check 2, as the first end with equilibre)=" + normaleProjPlan);
+					System.out.println("JP normaleProjPlan (check 2, as the first end with equilibre)=" + normaleProjPlan);
 					createRotDir(normaleProjPlan, listPoint, sumForcesN, left, right);
 				}
 			}else{
 				//Cas normal
-				System.out.println("normaleProjPlan=" + normaleProjPlan);
+				System.out.println("JP normal normaleProjPlan=" + normaleProjPlan);
 				createRotDir(normaleProjPlan, listPoint, sumForcesN, left, right);
 			}
 
@@ -378,16 +398,22 @@ public class JointPose extends JointRotation {
 				System.out.println("EQUILIBRE");
 				point1 = point2 = Vector3f.ZERO;
 				rotationForceVector.set(0, 0, 0);
-				pointRotation.set(point1);
+				pointWRotation.set(point1);
+				pointLRotation.set(point1);
 				idxL = idxR = -1;
+				state = State.EQUILIBRE;
 			} else if (right.lengthSquared() == 0 || left.lengthSquared() == 0) {
 				// if only 1 point => solo rot
 				Vector3f solo = right.lengthSquared() == 0 ? left : right;
 				System.out.println("ROT 1P " + solo);
 				point1 = point2 = solo.add(fPos);
 				idxL = idxR = points.indexOf(point1);
-				pointRotation.set(point1);
-				rotationForceVector.set(solo).normalizeLocal().crossLocal(sumForces);
+				System.out.println("ROT 1P idx " + idxL+ " = "+f.points.get(pointsIdx.get(idxL)));
+				pointWRotation.set(point1);
+				pointLRotation.set(f.points.get(pointsIdx.get(idxL)));
+				rotationForceVector.set(sumForces).crossLocal(solo.subtract(f.position.toVec3f()).normalizeLocal());
+				System.out.println("ROT 1P rotationForceVector=" + rotationForceVector+", from sumForce: "+sumForces+" at vect "+solo.subtract(f.position.toVec3f()));
+				state = State.ROT1P;
 			} else {
 				// else rot 2P
 				System.out.println("ROT 2P " + right + " , " + left);
@@ -395,6 +421,7 @@ public class JointPose extends JointRotation {
 				point2 = left.add(fPos);
 				idxR = points.indexOf(point1);
 				idxL = points.indexOf(point2);
+				state = State.ROT2P;
 				// System.out.println("IDXL = "+idxL);
 				// System.out.println("IDXL is "+point2+" in "+points);
 				// projection of O on plane (p1;p2) X SUM
@@ -408,8 +435,9 @@ public class JointPose extends JointRotation {
 				float denominateur = p1p2.dot(p1p2);
 				if (denominateur < 0.000001f)
 					System.err.println("Error, wrong denominateur");
-				pointRotation = point1.subtract(p1p2.mult(numerateur / denominateur));
-				System.out.println("point pivot : " + pointRotation);
+				pointWRotation = point1.subtract(p1p2.mult(numerateur / denominateur));
+				pointLRotation = f.transfoMatrix.invert().mult(pointWRotation);
+				System.out.println("point pivot : " + pointWRotation);
 
 				System.out.println("rotationForceVector force : " + sumForces.length());
 				System.out.println("rotationForceVector dir (left to right) : " + right.subtract(left).normalizeLocal());
@@ -537,7 +565,7 @@ public class JointPose extends JointRotation {
 				System.out.println("right dir dot left: "
 						+ sumForcesN.cross(sumForcesN.cross(right)).dot(left.subtract(right)));
 				if (sumForcesN.cross(sumForcesN.cross(right)).dot(left.subtract(right)) < 0) {
-					System.out.println("right better than left");
+					System.out.println("right better than left : ");
 					left = null;
 					solo = right;
 				} else {
@@ -756,7 +784,7 @@ public class JointPose extends JointRotation {
 						+ ") ="+point.distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
 			numPointToCheckAeff ++;
 		}
-		System.out.println("Joint pose has now " + pointCollision + " at idx " + idx);
+		System.out.println("Joint pose has now " + pointCollision + " at idx " + idx+" : "+f.points.get(idx));
 		this.points.add(pointCollision);
 		this.pointsIdx.add(idx);
 		this.oppositeForme.add(fOpposite);
@@ -771,9 +799,9 @@ public class JointPose extends JointRotation {
 
 	@Override
 	public int degreeOfLiberty(){
-		if(idxL == -1 && idxR == -1){
+		if(state == State.EQUILIBRE){
 			return 0; //posé
-		}else if(idxL == idxR){
+		}else if(state == State.ROT1P){
 			return 2; //rot autour d'un point
 		}else{
 			//rot autour d'un axe?
@@ -784,7 +812,7 @@ public class JointPose extends JointRotation {
 	@Override
 	public void gotoCollision(int pointIdx, Vector3f pointObj) {
 		//don't move if in equilibrium.
-		if(idxL == -1 && idxR == -1){
+		if(state == State.EQUILIBRE){
 			return;
 		}
 		super.gotoCollision(pointIdx, pointObj);
