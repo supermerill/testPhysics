@@ -266,6 +266,38 @@ public class JointPose extends JointRotation {
 
 		Vector3f sumForcesN = sumForces.normalize();
 
+		// Angular force:
+		Vector3f sumAngular = new Vector3f(0, 0, 0);
+		for (Vector3f force : f.angularForces) {
+			sumAngular.addLocal(force);
+		}
+		sumAngular.divideLocal(f.getIntertiaMoment());
+//		f.aangulaire.addLocal(sumAngular);
+		
+		//1-point rotation: just transpose them to angular acceleration
+		//2-point rotation: euhhh
+		//stable : w8!
+		
+		
+		//stable: create a force on the more distant point dans le sens de la rotation?
+		
+		
+		// Une rotation a une grande amplitude aux extrémité mais une faible force, l'inverse pour un point près du centre.
+		// Une rotation va prendre appui sur un point ou une droite.
+		// on peut réutiliser l'algo ci-dessous?
+		// pb: il n'y a plus de plan "normal" à la somme des force, juste une distance au centre et le sens de rotation.
+		// => on a besoin des normales (de dessin3D) aux points! pour pouvoir savoir si l'on apuit ou on les quittes.
+		// Ou alors il faut stocker cette normale ici au moment où l'on a crée la collision, sachant alors le sens de celle-ci
+		// amplitude négative => décollage, il ne se passe rien (juste plus de forces transmises
+		// amplitude positive => transmission de force, et résultante
+		 
+		
+		//et après? comment combiner avec le reste?
+		
+		//idée: déplacer le centre de gravité
+		//idée2: ajouter une coposante à la somme des forec: déplace la direction de celui-ci.
+		
+		
 		// ///////create normale:
 
 		// get all vector (PointofContact-Pos)

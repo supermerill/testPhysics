@@ -1056,6 +1056,9 @@ public class CollisionUpdater {
 			pred.moment = 0;
 		}
 
+		//TODO: triangle-triangle collision avec les arretes, sans points.
+		
+		
 	}
 
 	//
