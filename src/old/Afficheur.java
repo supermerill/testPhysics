@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -24,18 +26,20 @@ public class Afficheur extends JComponent {
 	ArrayList<Forme> formes = new ArrayList<>();
 	Color c = Color.BLACK;
 	
-	int keyPress;
+	Set<Integer> keyPress = new HashSet<>();
 
 	public static void main(String[] args) {
 		JFrame fenetre = new JFrame();
 		final Afficheur view = new Afficheur();
+		
+		Vector3f positionGravite = new Vector3f(0,-100,0);
 
 		Forme f = new Forme("TRAP");
-//		f.points.add(new Vector3f(-15, -15, -6));
-//		f.points.add(new Vector3f(15, -15, -6));
-//		f.points.add(new Vector3f(-15, 15, -6));
-//		f.points.add(new Vector3f(15, 15, -6));
-//		f.points.add(new Vector3f(-3, 3, 6));
+//		f.addPoint(new Vector3f(-15, -15, -6));
+//		f.addPoint(new Vector3f(15, -15, -6));
+//		f.addPoint(new Vector3f(-15, 15, -6));
+//		f.addPoint(new Vector3f(15, 15, -6));
+//		f.addPoint(new Vector3f(-3, 3, 6));
 //		f.triangles.add(new Triangle(f,0, 1, 2));
 //		f.triangles.add(new Triangle(f,1, 2, 3));
 //		f.triangles.add(new Triangle(f,0, 1, 4));
@@ -51,14 +55,14 @@ public class Afficheur extends JComponent {
 //		f.landed = false;
 //		f.doNotFaceCenter();
 //		view.formes.add(f);
-		f.points.add(new Vector3f(-100, 20, -50)); //0
-		f.points.add(new Vector3f(-100, 20, 50)); //1
-		f.points.add(new Vector3f(100, 20, 50)); //2
-		f.points.add(new Vector3f(100, 20, -50)); //3
-		f.points.add(new Vector3f(-100, -20, -50)); //4
-		f.points.add(new Vector3f(-100, -20, 50)); //5
-		f.points.add(new Vector3f(100, -20, 50)); //6
-		f.points.add(new Vector3f(100, -20, -50)); //7
+		f.addPoint(new Vector3f(-100, 20, -50)); //0
+		f.addPoint(new Vector3f(-100, 20, 50)); //1
+		f.addPoint(new Vector3f(100, 20, 50)); //2
+		f.addPoint(new Vector3f(100, 20, -50)); //3
+		f.addPoint(new Vector3f(-100, -20, -50)); //4
+		f.addPoint(new Vector3f(-100, -20, 50)); //5
+		f.addPoint(new Vector3f(100, -20, 50)); //6
+		f.addPoint(new Vector3f(100, -20, -50)); //7
 		f.triangles.add(new Triangle(f,1,0,4));
 		f.triangles.add(new Triangle(f,4,5,1));
 		f.triangles.add(new Triangle(f,2,1,5));
@@ -78,24 +82,29 @@ public class Afficheur extends JComponent {
 		f.physicUpdate = true;
 		f.landed = false;
 		f.roundBBRayon = 12;
+		f.positionGravite = positionGravite;
 		f.position.set(5,0,0);
 		for(Vector3f vect : f.points){
 			vect.divideLocal(10);
 		}
+		for(Vector3f vect : f.normales){
+			vect.divideLocal(10);
+		}
 		f.doNotFaceCenter();
+		f.computeNormales();
 		view.formes.add(f);
 		
 		//sol
 
 		f = new Forme("SOL");
-		f.points.add(new Vector3f(-200, 10, -100)); //0
-		f.points.add(new Vector3f(-200, 10, 100)); //1
-		f.points.add(new Vector3f(200, 10, 100)); //2
-		f.points.add(new Vector3f(200, 10, -100)); //3
-		f.points.add(new Vector3f(-200, -10, -100)); //4
-		f.points.add(new Vector3f(-200, -10, 100)); //5
-		f.points.add(new Vector3f(200, -10, 100)); //6
-		f.points.add(new Vector3f(200, -10, -100)); //7
+		f.addPoint(new Vector3f(-200, 10, -100)); //0
+		f.addPoint(new Vector3f(-200, 10, 100)); //1
+		f.addPoint(new Vector3f(200, 10, 100)); //2
+		f.addPoint(new Vector3f(200, 10, -100)); //3
+		f.addPoint(new Vector3f(-200, -10, -100)); //4
+		f.addPoint(new Vector3f(-200, -10, 100)); //5
+		f.addPoint(new Vector3f(200, -10, 100)); //6
+		f.addPoint(new Vector3f(200, -10, -100)); //7
 		f.triangles.add(new Triangle(f,1,0,4));
 		f.triangles.add(new Triangle(f,4,5,1));
 		f.triangles.add(new Triangle(f,2,1,5));
@@ -111,26 +120,31 @@ public class Afficheur extends JComponent {
 
 
 
-		f.points.add(new Vector3f(0, 0, 0)); //8
-		f.points.add(new Vector3f(0, 0, 0)); //9
+		f.addPoint(new Vector3f(0, 0, 0)); //8
+		f.addPoint(new Vector3f(0, 0, 0)); //9
 //		
-		f.points.add(new Vector3f(-33, 10, 0)); //10
-		f.points.add(new Vector3f(20, 10, 20)); //11
-		f.points.add(new Vector3f(20, 10, -20)); //12
-		f.points.add(new Vector3f(0, 55, 0)); //13
-//		f.points.add(new Vector3f(-133, 10, 0)); //10
-//		f.points.add(new Vector3f(-80, 10, 20)); //11
-//		f.points.add(new Vector3f(-80, 10, -20)); //12
-//		f.points.add(new Vector3f(-100, 100, 0)); //13
+		f.addPoint(new Vector3f(-33, 10, 0)); //10
+		f.addPoint(new Vector3f(20, 10, 20)); //11
+		f.addPoint(new Vector3f(20, 10, -20)); //12
+		f.addPoint(new Vector3f(0, 55, 0)); //13
+//		f.addPoint(new Vector3f(-133, 10, 0)); //10
+//		f.addPoint(new Vector3f(-80, 10, 20)); //11
+//		f.addPoint(new Vector3f(-80, 10, -20)); //12
+//		f.addPoint(new Vector3f(-100, 100, 0)); //13
 		f.triangles.add(new Triangle(f,10, 13, 11));
 		f.triangles.add(new Triangle(f,11, 13, 12));
 		f.triangles.add(new Triangle(f,12, 13, 10));
 		f.roundBBRayon = 25;
+		f.positionGravite = positionGravite;
 		f.position.set(0,-20,0);
 		for(Vector3f vect : f.points){
 			vect.divideLocal(10);
 		}
+		for(Vector3f vect : f.normales){
+			vect.divideLocal(10);
+		}
 		f.doNotFaceCenter();
+		f.computeNormales();
 		view.formes.add(f);
 
 		fenetre.add(view);
@@ -148,14 +162,12 @@ public class Afficheur extends JComponent {
 			
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if(view.keyPress == e.getKeyCode()){
-					view.keyPress = 0;
-				}
+				view.keyPress.remove(e.getKeyCode());
 			}
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
-				view.keyPress = e.getKeyCode();
+				view.keyPress.add(e.getKeyCode());
 			}
 		});
 
@@ -188,32 +200,56 @@ public class Afficheur extends JComponent {
 
 					
 					//apply gravity
-					Vector3f force = new Vector3f(0,0,0);
-					Vector3f aforce = new Vector3f(0,0,0);
-					if(view.keyPress == KeyEvent.VK_Q){
-						force.set(20000,20000,0);
+//					ArrayList<Vector3f> force = new ArrayList<>();
+//					Vector3f posforce = new Vector3f(0,0,0);
+					Forme maForme = view.formes.get(0);
+					maForme.forces.clear();
+					maForme.pointApplicationForce.clear();
+					if(view.keyPress.contains(KeyEvent.VK_Q)){
+						maForme.forces.add(new Vector3f(20,20,0));
+						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(0, 0, 0)));
+						maForme.physicUpdate = true;
+						System.out.println("add force "+new Vector3f(20,20,0)+" @"+new Vector3f(0, 0, 0));
 					}
-					if(view.keyPress == KeyEvent.VK_D){
-						force.set(-20000,20000,0);
+					if(view.keyPress.contains(KeyEvent.VK_D)){
+						maForme.forces.add(new Vector3f(-20,20,0));
+						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(0, 0, 0)));
+						maForme.physicUpdate = true;
+						System.out.println("add force "+new Vector3f(-20,20,0)+" @"+new Vector3f(0, 0, 0));
 					}
-					if(view.keyPress == KeyEvent.VK_Z){
-						force.set(0,200000,0);
+					if(view.keyPress.contains(KeyEvent.VK_Z)){
+						maForme.forces.add(new Vector3f(0,20,0));
+						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(0, 0, 0)));
+						maForme.physicUpdate = true;
+						System.out.println("add force "+new Vector3f(0,20,0)+" @"+new Vector3f(0, 0, 0));
 					}
-					if(view.keyPress == KeyEvent.VK_R){
-						aforce.set(0,0,-20000);
+					if(view.keyPress.contains(KeyEvent.VK_E)){
+						maForme.forces.add(new Vector3f(0,20,0));
+						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(-100, -20, 0)));
+						maForme.physicUpdate = true;
+						System.out.println("add force "+new Vector3f(0,20,0)+" @"+new Vector3f(-100, -20, 0));
 					}
-					if(view.keyPress == KeyEvent.VK_E){
-						aforce.set(0,0,20000);
+					if(view.keyPress.contains(KeyEvent.VK_R)){
+						maForme.forces.add(new Vector3f(0,20,0));
+						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(100, -20, 0)));
+						maForme.physicUpdate = true;
+						System.out.println("add force "+new Vector3f(0,20,0)+" @"+new Vector3f(100, -20, 0));
 					}
-					for(Forme f : view.formes){
-						while(f.forces.size()>1){
-							f.forces.remove(f.forces.size()-1);
-						}
-						if(!f.landed) f.forces.add(force);
-						f.angularForces.clear();
-						f.angularForces.add(aforce);
-						f.physicUpdate = true;
-					}
+//					for(Forme f : view.formes){
+////						while(f.forces.size()>1){
+////							f.forces.remove(f.forces.size()-1);
+////						}
+//						f.forces.clear();
+//						f.pointApplicationForce.clear();
+//						if(!f.landed){
+//							f.forces.add(force);
+//							f.pointApplicationForce.add(posforce);
+//							System.out.println("add force "+force+" @"+posforce);
+//						}
+////						f.angularForces.clear();
+////						f.angularForces.add(aforce);
+//						f.physicUpdate = true;
+//					}
 					previousMs = currentMs;
 					
 					
@@ -345,6 +381,13 @@ public class Afficheur extends JComponent {
 						maxY - (int) (n.y + n.z / 2));
 			}
 			g.setColor(Color.RED);
+			for(int i=0;i<forme.normales.size(); i++){
+				Vector3f m = forme.transfoMatrix.mult(forme.points.get(i), null).multLocal(taille);
+				Vector3f n = m.add(forme.normales.get(i).mult(100));
+				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
+						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
+						maxY - (int) (n.y + n.z / 2));
+			}
 			if(forme.vangulaire.lengthSquared() != 0){
 				Vector3f m = forme.vangulaire.mult(1000).addLocal(forme.position.toVec3f().multLocal(taille));
 				Vector3f n = forme.position.toVec3f().multLocal(taille);

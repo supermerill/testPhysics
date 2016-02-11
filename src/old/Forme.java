@@ -26,14 +26,21 @@ public class Forme {
 //	public JointPose jointPose = new JointPose(); //TODO
 	public Joint joint = new JointFreeFlight(this);
 	public ArrayList<CollisionPrediction> collideAt = new ArrayList<>(1); //TODO
+	public Vector3f positionGravite = Vector3f.ZERO; // center of the gravity field for us.
+	//constanteGravite = 6.6734 E-11 N*m²/kg²
+	//default constanteGravite: 1g with 100m rayon (note: 1N = 10kg)
+	public float constanteGraviteMasse = 98100f; //can be updated with our position in space, in N*m²
+//	public float constanteGraviteStd = 98100f;//398000f; //can be updated with our position in space, in m3/s²
 	public ArrayList<Vector3f> forces = new ArrayList<>();
-	public ArrayList<Vector3f> angularForces = new ArrayList<>();
+	public ArrayList<Vector3f> pointApplicationForce = new ArrayList<>(); //world repere
+	public ArrayList<Integer> idxpointApplicationForce = new ArrayList<>(); //choisir une des deux
+//	public ArrayList<Vector3f> angularForces = new ArrayList<>();
 	//-------------
 	
 	
 	public boolean landed = true;
 	public double roundBBRayon=1; //rayon of the boundingbox (en m)
-	public double mass = 1000; // en gramme
+	public double mass = 1; // en kg
 	//use an overly-simplified model of moment of inertia.
 	// moment of intertia: boule = mr²*2/5 tige(rot extrem): mL²/3 (4mr²/3)
 	// pavé (sur axe x): m*(y²+z²)/12
@@ -63,6 +70,7 @@ public class Forme {
 
 	//mesh, en coordonees locale (besoin de passer par transfoMatrix)
 	public ArrayList<Vector3f> points = new ArrayList<>();
+	public ArrayList<Vector3f> normales = new ArrayList<>();
 	public ArrayList<Triangle> triangles = new ArrayList<>();
 	
 	//temp vars (remove this alter)
@@ -302,6 +310,33 @@ public class Forme {
 		
 		//update trsf matrix
 		transfoMatrix.setTransform(position.toVec3f(), Vector3f.UNIT_XYZ, pangulaire.toRotationMatrix());
+	}
+	
+	public void addPoint(Vector3f point){
+		points.add(point);
+		normales.add(new Vector3f(point));
+		System.out.println("point "+(points.size()-1)+": "+normales.get(points.size()-1));
+	}
+	
+	public void computeNormales(){
+		if(normales.size() != points.size()){ System.err.println("Error, not enough normales!"); System.exit(1);}
+		Plane p = new Plane();
+		int[] nbCompo = new int[points.size()];
+		for(Triangle tri : triangles){
+			//compute normale
+			p.setPlanePoints(points.get(tri.a), points.get(tri.b), points.get(tri.c));
+			normales.get(tri.a).addLocal(p.getNormal());
+			nbCompo[tri.a]++;
+			normales.get(tri.b).addLocal(p.getNormal());
+			nbCompo[tri.b]++;
+			normales.get(tri.c).addLocal(p.getNormal());
+			nbCompo[tri.c]++;
+		}
+		for(int i=0;i<normales.size();i++){
+			if(nbCompo[i]>0){
+				normales.get(i).subtractLocal(points.get(i)).divideLocal(nbCompo[i]).normalizeLocal();
+			}
+		}
 	}
 	
 }

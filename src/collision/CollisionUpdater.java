@@ -604,6 +604,12 @@ public class CollisionUpdater {
 				
 				}while(tempP.distance(pred.bestP)>0.00005f && !previousBestP.equals(pred.bestP));
 
+				//TODO
+				//if one is inside the other and we failed to recover
+				// => revert to previous good pos and integrate eux deux with small steps
+				// instead of a big for eux deux + small ones for un seul.
+				
+				
 				// create the link between the two objects
 				// JointPonctuel joint = new JointPonctuel();
 				// joint.f1 = pred.formeTri;
@@ -672,7 +678,7 @@ public class CollisionUpdater {
 	private Vector3f createNewPoint(Forme formeTri, int triIdx, Vector3f newPoint) {
 		System.out.println("create new point @" + newPoint);
 		int idxNewP = formeTri.points.size();
-		formeTri.points.add(formeTri.transfoMatrix.invert().mult(newPoint));
+		formeTri.addPoint(formeTri.transfoMatrix.invert().mult(newPoint));
 		Triangle triInit = formeTri.triangles.get(triIdx);
 		Triangle tri2 = new Triangle(formeTri, triInit.b, triInit.c, idxNewP);
 		Triangle tri3 = new Triangle(formeTri, triInit.c, triInit.a, idxNewP);
@@ -688,6 +694,9 @@ public class CollisionUpdater {
 		for (Triangle tri : triangles) {
 			plan.setPlanePoints((formeTri.points.get(tri.a)), (formeTri.points.get(tri.b)),
 					(formeTri.points.get(tri.c))); // create plane
+			//set normal for the new point
+			formeTri.normales.get(formeTri.normales.size()-1).set(plan.getNormal());
+			//order the points in the right direction
 			if (plan.whichSide(tempVect) == Side.Positive) {
 				System.err.println("Forme " + this + " : wrong side for newly created triangle " + tri.a + tri.b
 						+ tri.c);

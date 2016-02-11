@@ -62,32 +62,83 @@ public class JointFreeFlight extends Joint {
 	public void updateForce(long instant, long dt) {
 		//force -> accel
 		//https://pixelastic.github.io/pokemonorbigdata/
-
-
-		f.acceleration.set(0,0,0);
-		for (Vector3f force : f.forces) {
-			f.acceleration.addLocal(force);
+		
+		//for each force, decompose them into linear & angular
+		System.out.println("Free updateForce! "+f.forces.size());
+		Vector3f sumLinear = new Vector3f(0,0,0);
+		Vector3f sumAngular = new Vector3f(0,0,0);
+		Vector3f fpos = f.position.toVec3f();
+		Vector3f vectDir = new Vector3f();
+		for(int i=0; i<f.forces.size(); i++){
+			vectDir.set(fpos).subtractLocal(f.pointApplicationForce.get(i)).normalizeLocal();
+			if(vectDir.lengthSquared() == 0){
+//				System.out.println("onlylinear : "+f.forces.get(i));
+				sumLinear.addLocal(f.forces.get(i));
+			}else{
+				float length = f.forces.get(i).length();
+				float dot = vectDir.dot(f.forces.get(i));
+				sumLinear.addLocal(f.forces.get(i).mult(dot/length));
+//				System.out.println("linear : "+vectDir.mult(dot));
+				if(dot < length){ //+epsilon?
+					Vector3f angularVect = f.forces.get(i).cross(vectDir);
+					angularVect.multLocal((length-dot)/length);
+//					System.out.println("angular : "+angularVect+" "+f.forces.get(i)+" cross "+vectDir+" mult "+((length-dot)/length));
+					
+					//recompose angular into linear if combine
+					// note: it should not occur on a free-flight object.
+					float maxLength = Math.min(length, sumAngular.length());
+					if(maxLength>0){
+						float percent = angularVect.normalize().dot(sumAngular.normalize());
+						if(percent < 0){
+//							System.out.println("addLinear : "+f.forces.get(i).mult(-2*percent*(length-dot)/length));
+							sumLinear.addLocal(f.forces.get(i).mult(-2*percent*(length-dot)/length));
+						}
+					}
+					sumAngular.addLocal(angularVect);
+				}
+			}
 		}
-		System.out.println("sumForces : " + f.acceleration);
-		
-		//decomposition en linéaire et angulaire
-		//TODO: need position of forces to do that?
-		// (or not as thay can be decomposed by linear force and angular force)
-		
-		//Angular force: just transpose them to angular acceleration
-		f.aangulaire.set(0,0,0);
-		for (Vector3f force : f.angularForces) {
-			f.aangulaire.addLocal(force);
+//		System.out.println("linear final : "+sumLinear);
+//		System.out.println("angular final : "+sumAngular);
+		if(f.landed) f.acceleration.set(0,0,0);
+		else{
+			f.acceleration.set(f.positionGravite).subtractLocal(fpos);
+			float dist = f.acceleration.length();
+			f.acceleration.normalizeLocal().multLocal((float)(f.constanteGraviteMasse/(dist*dist*f.mass)));
 		}
-		System.out.println("f.aangulaire="+f.aangulaire);
-		f.aangulaire.divideLocal(f.getIntertiaMoment());
-		
-		//for each force : OF dot F1F2 => lineaire
-		//the remaining is rot with OF/2 as center
-		// => decompose remaining rotation force as lineaire and angular
-		
-		f.acceleration.divideLocal((float)f.mass);
-		System.out.println("accel : "+ f.acceleration);
+		System.out.println("JFF grav : "+f.acceleration);
+		System.out.println("JFF sumLinear : "+sumLinear);
+		sumLinear.divideLocal((float)f.mass);
+		System.out.println("JFF sumLinear : "+sumLinear);
+		f.acceleration.addLocal(sumLinear);
+		sumAngular.divideLocal(f.getIntertiaMoment());
+		f.aangulaire.set(sumAngular);
+
+//		f.acceleration.set(0,0,0);
+//		for (Vector3f force : f.forces) {
+//			f.acceleration.addLocal(force);
+//		}
+//		System.out.println("sumForces : " + f.acceleration);
+//		
+//		//decomposition en linéaire et angulaire
+//		//TODO: need position of forces to do that?
+//		// (or not as thay can be decomposed by linear force and angular force)
+//		
+//		//Angular force: just transpose them to angular acceleration
+//		f.aangulaire.set(0,0,0);
+//		for (Vector3f force : f.angularForces) {
+//			f.aangulaire.addLocal(force);
+//		}
+//		System.out.println("f.aangulaire="+f.aangulaire);
+//		f.aangulaire.divideLocal(f.getIntertiaMoment());
+//		
+//		//for each force : OF dot F1F2 => lineaire
+//		//the remaining is rot with OF/2 as center
+//		// => decompose remaining rotation force as lineaire and angular
+//		
+//		f.acceleration.divideLocal((float)f.mass);
+		System.out.println("JFF accel : "+ f.acceleration);
+		System.out.println("JFF aaccel : "+ f.aangulaire);
 		
 	}
 

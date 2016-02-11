@@ -14,7 +14,7 @@ public abstract class JointRotation extends Joint {
 
 	//the point-joint
 	public Vector3f pointWRotation = new Vector3f(0,0,0); //World coord
-	public Vector3f pointLRotation = new Vector3f(0,0,0); //World coord
+	public Vector3f pointLRotation = new Vector3f(0,0,0); //Local coord
 	
 	
 	public JointRotation(Forme f) {
@@ -52,11 +52,14 @@ public abstract class JointRotation extends Joint {
 		
 
 		//vitesse lineaire, pour garder le centre de rotation à peu près où il faut.
-		f.vitesse.set(newSpeed.mult(10)); ///???? *10?
+		f.vitesse.set(newSpeed.mult(1)); ///???? *10?
 		System.out.println("JointRotation : speed now "+f.vitesse+" on "+f);
 		System.out.println("JointRotation : speed displacement this turn "+f.vitesse.mult(dts).length());
 		System.out.println("forme End UpdatePos "+f +"@"+f.position);
 	}
+	
+	//TODO: allow to return "can't collide"
+	//TODO: refactor the nbIter / bestDist to end when we are not going any better => revert and return false
 //	Vector3f lastPos = new Vector3f();
 	@Override
 	public void gotoCollision(int pointIdx, Plane planeObj) {
@@ -68,6 +71,12 @@ public abstract class JointRotation extends Joint {
 		
 		Vector3f WR = pointWRotation;
 		Vector3f LR = pointLRotation; //f.transfoMatrix.invert().mult(pointWRotation);
+
+		
+
+		System.out.println("BeforeRecalage : " + pointWRotation + ".distance("
+				+ f.transfoMatrix.mult(pointLRotation) 
+				+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(new Vector3f(pointLRotation))));
 		//it's hard to me to figure it out exactly in 1 pass right now,
 		//i just incrementally adjust the position of the object
 		float vitesse = Math.abs(f.vangulaire.cross(LP).addLocal(f.vitesse).dot(planeObj.getClosestPoint(WP).subtract(WP).normalizeLocal()));
@@ -84,26 +93,33 @@ public abstract class JointRotation extends Joint {
 //		}
 		
 		System.out.println("LR="+LR+" WR="+WR+" and now L->WR = "+f.transfoMatrix.mult(LR));
-		
 		while(distance < 0 ){
+			System.out.println("PPl INIT WP="+WP+", dist="+distance+" vitesse="+vitesse+" dts="+dts);
 			rotateALittle(dts, LR);
 			//relance
 			f.transfoMatrix.mult(LP, WP);
 			distance = planeObj.pseudoDistance(WP);
 			dts*=2;
 		}
-		while(distance>0.00005f || distance < 0 ){
+		int nbIter=0;
+		float bestDist = distance*1.01f;
+		while((distance>0.00005f || distance < 0  )&& bestDist > Math.abs(distance)){
 			System.out.println("PPl WP="+WP+", dist="+distance+" vitesse="+vitesse+" dts="+dts);
 			System.out.println("LR="+LR+" WR="+WR+" and now L->WR = "+f.transfoMatrix.mult(LR));
 			rotateALittle(dts, LR);
 			//relance
 			f.transfoMatrix.mult(LP, WP);
 			distance = planeObj.pseudoDistance(WP);
-			dts = (distance<0?2.14f:0.99f)*distance / vitesse;
+			dts = (distance<0?2.14f:0.5f)*distance / vitesse;
+			if(nbIter>10) dts = dts*0.314f;
+			nbIter++;
 		}
 		System.out.println("end recalage with precision@"+FastMath.abs(distance));
 		System.out.println("LR="+LR+" WR="+WR+" and now L->WR = "+f.transfoMatrix.mult(LR));
 		System.out.println("WP: "+WP+", obj : " + planeObj.getClosestPoint(WP));
+		System.out.println("AfterRecalage : " + pointWRotation + ".distance("
+				+ f.transfoMatrix.mult(pointLRotation) 
+				+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(new Vector3f(pointLRotation))));
 	}
 
 	@Override
@@ -145,8 +161,9 @@ public abstract class JointRotation extends Joint {
 			distance = myPlane.pseudoDistance(worldObj);
 			dts*=2;
 		}
-		
-		
+		dts = 0.5f*distance / vitesse;
+		int nbIter=0;
+		float bestDist = distance*1.01f;
 		while(distance>0.00005f || distance < 0 ){
 			System.out.println("PlP myPlane="+myPlane+", dist="+distance+" vitesse="+vitesse+" dts="+dts);
 			rotateALittle(dts, LR);
@@ -156,7 +173,9 @@ public abstract class JointRotation extends Joint {
 			f.transfoMatrix.mult(localTC, tempC);
 			myPlane.setPlanePoints(tempA, tempB, tempC);
 			distance = myPlane.pseudoDistance(worldObj);
-			dts = 0.99f*distance / vitesse;
+			dts = 0.5f*distance / vitesse;
+			if(nbIter>10) dts = dts*0.314f;
+			nbIter++;
 		}
 		System.out.println("end recalage with precision@"+FastMath.abs(distance));
 		System.out.println("WP="+myPlane.getClosestPoint(worldObj)+", obj : " + worldObj);
@@ -247,7 +266,7 @@ public abstract class JointRotation extends Joint {
 		//matrix
 		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
 			f.pangulaire.toRotationMatrix());
-		//recalage au cas ou : keep le centre de rotation FIXE a tout prix
+		//recalage : keep le centre de rotation FIXE a tout prix
 		f.position.addLocal(pointWRotation.subtract(f.transfoMatrix.mult(localCenterOfRotation)));
 		f.transfoMatrix.setTranslation(f.position.toVec3fLocal(f.calculF));
 	}
