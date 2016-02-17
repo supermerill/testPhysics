@@ -356,27 +356,35 @@ public class JointPose extends JointRotation {
 			float dist = vectGrav.length();
 			sumLinear.addLocal(vectGrav.normalizeLocal().multLocal((float)(f.constanteGraviteMasse/(dist*dist))));
 		}
+		System.out.println("JP linear gravity : "+sumLinear);
 		Vector3f sumAngular = new Vector3f(0,0,0);
 		Vector3f vectDir = new Vector3f();
 		float sumPercent = 0;
 		ArrayList<Float> percentAngular = new ArrayList<>();
+		//angularforce: the angular moment contribution at this point
 		ArrayList<Vector3f> angularForce = new ArrayList<>();
+		//angularlinearforce: the linear force (in N) at that point that convert 100% to angular motion
+		ArrayList<Vector3f> angularLinearForce = new ArrayList<>();
 		for(int i=0; i<f.forces.size(); i++){
 			percentAngular.add(0f);
+			angularLinearForce.add(new Vector3f());
 			angularForce.add(new Vector3f());
 			vectDir.set(fPos).subtractLocal(f.pointApplicationForce.get(i)).normalizeLocal();
+			System.out.println("force : "+f.forces.get(i));
 			if(vectDir.lengthSquared() == 0){
 //						System.out.println("onlylinear : "+f.forces.get(i));
 				sumLinear.addLocal(f.forces.get(i));
 			}else{
 				float length = f.forces.get(i).length();
-				float dot = vectDir.dot(f.forces.get(i));
-				sumLinear.addLocal(f.forces.get(i).mult(dot/length));
-//						System.out.println("linear : "+vectDir.mult(dot));
-				if(dot < length){ //+epsilon?
+				float dotAbs = Math.abs(vectDir.dot(f.forces.get(i)));
+				sumLinear.addLocal(f.forces.get(i).mult(dotAbs/length));
+				System.out.println("dot : "+dotAbs+", length="+length);
+				System.out.println("linear : "+f.forces.get(i).mult(dotAbs/length));
+				if(dotAbs < length){ //+epsilon?
 					Vector3f angularVect = f.forces.get(i).cross(vectDir);
-					angularVect.multLocal((length-dot)/length);
-//							System.out.println("angular : "+angularVect+" "+f.forces.get(i)+" cross "+vectDir+" mult "+((length-dot)/length));
+					Vector3f angularLinearVect = f.forces.get(i).mult((length-dotAbs)/length);
+					angularVect.multLocal((length-dotAbs)/length);
+							System.out.println("angular : "+angularVect+" "+f.forces.get(i)+" cross "+vectDir+" mult "+((length-dotAbs)/length));
 					
 					//recompose angular into linear if combine
 					// note: it should not occur on a free-flight object.
@@ -384,7 +392,7 @@ public class JointPose extends JointRotation {
 					if(maxLength>0){
 						float percent = angularVect.normalize().dot(sumAngular.normalize());
 						//quantity of linear to re-add *2 if this angular force isn't completely compensated
-						float quantity = percent*(length-dot)/length;
+						float quantity = percent*(length-dotAbs)/length;
 						//quantity of linear to re-add *2 if this angular force is completely compensated
 						if(percent*sumAngular.length() > quantity){
 							quantity = length;
@@ -404,6 +412,7 @@ public class JointPose extends JointRotation {
 								percentRemove = percentRemove / totPercentRemove;
 								float quantityRemove = quantity * percentRemove;
 								percentAngular.set(j,  percentAngular.get(j) - quantityRemove);
+								angularLinearForce.set(j, angularLinearForce.get(j).mult(1-percentRemove));
 								angularForce.set(j, angularForce.get(j).mult(1-percentRemove));
 							}
 							sumPercent -= quantity;
@@ -411,12 +420,14 @@ public class JointPose extends JointRotation {
 							percentAngular.set(i, quantity);
 							sumPercent += quantity;
 							sumAngular.addLocal(angularVect);
+							angularLinearForce.set(i, angularLinearVect);
 							angularForce.set(i, angularVect);
 						}
 					}else{
 						percentAngular.set(i, 1f);
 						sumPercent += 1f;
 						sumAngular.addLocal(angularVect);
+						angularLinearForce.set(i, angularLinearVect);
 						angularForce.set(i, angularVect);
 					}
 				}
@@ -426,9 +437,7 @@ public class JointPose extends JointRotation {
 		System.out.println("JP angular intermediaire : "+sumAngular);
 		
 		/// nouvelle version:
-		//note: force angualire  = force lineaire * distance au centre
-		// et je ne sais plus trop où mettre le moment d'inertie
-		// pt-etre quand on passe en linéaire, dviser par le moment et multiplier par la masse?
+		//note: force angualire  = force lineaire * distance au centre (donc Nm et pas N) = moment
 		if(sumAngular.lengthSquared()>0){
 			// on va regarder les points de contacts qui ont une normale dans le meme sens que forceAngul X position
 			// Ce sont les points de contacts
@@ -482,24 +491,36 @@ public class JointPose extends JointRotation {
 				//
 				Vector3f pointRotation = points.get(bestPointIdx);
 				Vector3f newSumAngular = new Vector3f(0,0,0);
+				
+				//pour chaque point, on prend sa force en N (lineaire)
+				// on prend le centre de gravité comme opposition
+				// on pourra le re-transposer plus tard avec un nouveau centre de rotation (ou le meme)
 				for(int i=0; i<f.forces.size(); i++){
 					if(percentAngular.get(i)>0){
 						float FP = pointRotation.subtract(f.pointApplicationForce.get(i)).length();
 						float PC = pointRotation.subtract(fPos).length();
-						newSumAngular.addLocal(angularForce.get(i).mult(FP/PC));
+						newSumAngular.addLocal(angularLinearForce.get(i).mult(FP/PC));
+						System.out.println("JP angularForce "+angularLinearForce.get(i)+" @"+f.pointApplicationForce.get(i)); 
+						System.out.println("JP FP "+FP); 
+						System.out.println("JP PC "+PC); 
 					}
 				}
-				Vector3f linearAtRot = newSumAngular.cross(pointRotation.subtract(fPos));
+//				Vector3f linearAtRot = newSumAngular.cross(pointRotation.subtract(fPos));
+//				Vector3f linearAtRot = pointRotation.subtract(fPos).cross(newSumAngular);
+				Vector3f linearAtRot = newSumAngular;
 				
 				//add it to linear force ^^ (and let the simu to oscilate from pose/freeflight)
+				//TODOAFTER: creer un nouveau lien pour eviter l'oscillation?
 				sumLinear.addLocal(linearAtRot);
-				//FIXME trop gros! pourquoi multiplier par la dist? faudrait pas diviser aussi?
 				//force != acceleration?
 				//force lineaire: N (ou kg*m/s²)
 				//force (moment) angulaire : N*m (ou kg*m²/s²)
 				System.out.println("JP linear UPPPPPP! "+linearAtRot); 
+				System.out.println("JP pointRotation "+pointRotation); 
+				System.out.println("JP newSumAngular "+newSumAngular); 
+				System.out.println("JP pointRotation.subtract(fPos) "+pointRotation.subtract(fPos)); 
 			}else{
-				//nothing dtop it to rotate => rotate!
+				//nothing stop it to rotate => rotate!
 				sumAngular.divideLocal(f.getIntertiaMoment());
 				f.aangulaire.addLocal(sumAngular);
 				System.out.println("JP linear rotate! "+sumAngular);
@@ -509,7 +530,8 @@ public class JointPose extends JointRotation {
 
 		Vector3f sumForces = sumLinear;
 		Vector3f sumForcesN = sumForces.normalize();
-		
+
+		System.out.println("JP linear intermediaire2 : "+sumLinear);
 		
 		
 		// ///////create normale:
@@ -520,25 +542,54 @@ public class JointPose extends JointRotation {
 		// ListPoint represent points but with the center of gravity at 0,0,0
 		// instead at f.position.
 		List<Vector3f> listPoint = new ArrayList<>();
-		for (Vector3f pointOfContact : points) {
+		List<Vector3f> listPointOpposite = new ArrayList<>();
+		for (int i=0;i<points.size();i++) {
+			Vector3f pointOfContact = points.get(i);
 			Vector3f vect = fPos.subtract(pointOfContact);
-			System.out.println("((JointPose)f.joint).points.add(new Vector3f(" + pointOfContact.x + "f, "
-					+ pointOfContact.y + "f, " + pointOfContact.z + "f));");
+			System.out.println("JP ((JointPose)f.joint).points.add(new Vector3f(" + pointOfContact.x + "f, "
+					+ pointOfContact.y + "f, " + pointOfContact.z + "f)); => vect="+vect);
+			//FIXME: utiliser la normale du point pour voir dans quel sens il travaille au lieu de OP
 			// vect.normalize();
 			// vect = Vector3f.UNIT_XYZ.divide(vect);
-			if (vect.dot(sumForcesN) < 0) {
+			if (f.normales.get(pointsIdx.get(i)).dot(sumForcesN) > 0) {
+				System.out.println("JP vect.dot(sumForcesN) >= 0 => Can block your passage!");
 				// listVector.add(vect);
+				// * -1 car on passe du vecteur PO au point OP
 				listPoint.add(vect.multLocal(-1));
 			} else {
+				System.out.println("JP vect.dot(sumForcesN) < 0 => set it at opposite ?");
 				// put them in the other side
-				listPoint.add(vect);
+				listPointOpposite.add(vect);
 			}
 		}
 		if (listPoint.size() == 0) {
-			System.err.println("TODO: gerer le décollage d'un posé");
+			System.err.println("TODOAFTER: Mieux gerer le décollage d'un posé JP");
 			// ie supprimer jointposé (this) et mettre à la place un freeflight
+
+			f.acceleration.set(sumForces);
+
+			f.joint = new JointFreeFlight(f);
+			// mais on garde notre calcul!
+			
+			//del points pour le joint des formes associés
+			System.out.println("i have "+oppositePointsIdx.size()+" = "+points.size()+" == "+pointsIdx.size()+" == "+oppositePointsIdx.size());
+			for(int i=0;i<this.oppositePointsIdx.size();i++){
+				System.out.println("del "+i+" : "+points.get(i)+" in opposite");
+				oppositeForme.get(i).joint.removeCollisionPoint(points.get(i), oppositePointsIdx.get(i));
+//				oppositeForme.remove(i); //not useful
+//				oppositePointsIdx.remove(i); //not useful
+			}
 			return;
 		}
+
+		//TODO: use listPointOpposite if necessary ?
+		// ie: do not use them for cor dir, but use them afterward to see if it block the rotation?
+		// nay
+		// bon, en tout cas, il faut réfléchir.
+		// on ne peut peut pas les ajouter avant cr cela empeche un décollage.
+		// et on ne doit pas les utiliser comme pivot! (enfin je crois...)
+		// on ne peut les utiliser que pour l'equilibre?
+//		listPoint.addAll(listPointOpposite);
 
 		// pick a random vect
 		int idx = 0;
@@ -585,6 +636,7 @@ public class JointPose extends JointRotation {
 
 		} else {
 			System.out.println("equilibrium => PAS VRAI");
+			
 
 			Vector3f normaleProjPlan = new Vector3f();
 			if (!findNegNeg) {
@@ -603,6 +655,8 @@ public class JointPose extends JointRotation {
 
 			Vector3f left = new Vector3f();
 			Vector3f right = new Vector3f();
+			
+			
 			
 			// cas spécial : PP & NN ou PN & NP
 			if (normaleProjPlan.lengthSquared() < 0.000000001f) {
@@ -660,7 +714,13 @@ public class JointPose extends JointRotation {
 				point1 = point2 = solo.add(fPos);
 				System.out.println("ROT 1P idxL=" + idxL+ ", R="+idxR+", point1="+point1+" indexof="+points.indexOf(point1));
 				System.out.println("ROT 1P array= "+points);
+				System.out.println("right= "+right);
+				System.out.println("left= "+left);
 				idxL = idxR = points.indexOf(point1);
+				if(idxL == -1){
+					point1 = point2 = getAlmostPoint(point1);
+					idxL = idxR = points.indexOf(point1);
+				}
 				System.out.println("ROT 1P idx " + idxL+ " = "+f.points.get(pointsIdx.get(idxL)));
 				pointWRotation.set(point1);
 				pointLRotation.set(f.points.get(pointsIdx.get(idxL)));
@@ -674,6 +734,14 @@ public class JointPose extends JointRotation {
 				point2 = left.add(fPos);
 				idxR = points.indexOf(point1);
 				idxL = points.indexOf(point2);
+				if(idxR == -1){
+					point1 = getAlmostPoint(point1);
+					idxR = points.indexOf(point1);
+				}
+				if(idxL == -1){
+					point2 = getAlmostPoint(point2);
+					idxL = points.indexOf(point2);
+				}
 				state = State.ROT2P;
 				// System.out.println("IDXL = "+idxL);
 				// System.out.println("IDXL is "+point2+" in "+points);
@@ -1069,6 +1137,18 @@ public class JointPose extends JointRotation {
 			return;
 		}
 		super.gotoCollision(pointIdx, pointObj);
+	}
+	
+	private Vector3f getAlmostPoint(Vector3f pointCible){
+		float bestDist = 0.0001f;
+		Vector3f bestP = null;
+		for(Vector3f p : points){
+			if(p.distance(pointCible) < bestDist){
+				bestDist = p.distance(pointCible);
+				bestP = p;
+			}
+		}
+		return bestP;
 	}
 
 }

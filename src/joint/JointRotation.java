@@ -20,6 +20,42 @@ public abstract class JointRotation extends Joint {
 	public JointRotation(Forme f) {
 		super(f);
 	}
+	
+//	public static Vector3f getLinearFromRotation(Vector3f angular, Vector3f origin, Vector3f point, long dtms){
+//		float dts = dtms*0.001f;
+//		//set linear vit from vang
+//		Quaternion quaterAdd = new Quaternion().fromAngleAxis(angular.length() * dts, angular);
+//		
+//		Matrix4f newRot = new Matrix4f();
+//		newRot.setTransform(Vector3f.ZERO, Vector3f.UNIT_XYZ, quaterAdd.toRotationMatrix());
+//		
+//		Matrix4f preciseTrsf = new Matrix4f();
+//		preciseTrsf.setTransform(rotationP, Vector3f.UNIT_XYZ, f.pangulaire.toRotationMatrix());
+//		
+//		Vector3f transl = new Vector3f(f.transfoMatrix.invert().mult(pointWRotation)).mult(1);
+////		new Matrix4d(f.transfoMatrix).multNormal(transl, transl);
+//		preciseTrsf.multNormal(transl, transl);
+//		newRot.m03 = transl.x - newRot.m00 * transl.x - newRot.m01 * transl.y - newRot.m02
+//				* transl.z;
+//		newRot.m13 = transl.y - newRot.m10 * transl.x - newRot.m11 * transl.y - newRot.m12
+//				* transl.z;
+//		newRot.m23 = transl.z - newRot.m20 * transl.x - newRot.m21 * transl.y - newRot.m22
+//				* transl.z;
+//		System.out.println("JointRotation Translation : "+newRot.toTranslationVector());
+//		
+//		//f.transfoMatrix.translateVect(newRot.toTranslationVector());
+////		System.out.println("previousPs: "+f.position);
+//		Vector3f newSpeed = newRot.toTranslationVector();
+//		
+//
+//		//vitesse lineaire, pour garder le centre de rotation à peu près où il faut.
+//		f.vitesse.set(newSpeed.mult(1)); ///???? *10?
+//
+//		
+//		
+//		return null;
+//	}
+	
 
 	@Override
 	public void updatePosition(long instant, long dtms) {
@@ -94,6 +130,7 @@ public abstract class JointRotation extends Joint {
 		
 		System.out.println("LR="+LR+" WR="+WR+" and now L->WR = "+f.transfoMatrix.mult(LR));
 		while(distance < 0 ){
+			System.out.println("try to recover from a bad collision: "+distance);
 			System.out.println("PPl INIT WP="+WP+", dist="+distance+" vitesse="+vitesse+" dts="+dts);
 			rotateALittle(dts, LR);
 			//relance
@@ -110,7 +147,7 @@ public abstract class JointRotation extends Joint {
 			//relance
 			f.transfoMatrix.mult(LP, WP);
 			distance = planeObj.pseudoDistance(WP);
-			dts = (distance<0?2.14f:0.5f)*distance / vitesse;
+			dts = (distance<0?2.14f:0.9f)*distance / vitesse;
 			if(nbIter>10) dts = dts*0.314f;
 			nbIter++;
 		}
@@ -150,8 +187,9 @@ public abstract class JointRotation extends Joint {
 //			distance = planObjectif.pseudoDistance(WP);
 //			dts = 0.99f*distance / vitesse;
 //		}
-		
+		System.out.println("distance = "+distance);
 		while(distance<0){
+			System.out.println("try to recover from a bad collision: "+distance);
 			rotateALittle(dts, LR);
 			//relance
 			f.transfoMatrix.mult(localTA, tempA);
@@ -173,7 +211,7 @@ public abstract class JointRotation extends Joint {
 			f.transfoMatrix.mult(localTC, tempC);
 			myPlane.setPlanePoints(tempA, tempB, tempC);
 			distance = myPlane.pseudoDistance(worldObj);
-			dts = 0.5f*distance / vitesse;
+			dts = (distance<0?2.14f:0.9f)*distance / vitesse;
 			if(nbIter>10) dts = dts*0.314f;
 			nbIter++;
 		}
@@ -216,6 +254,7 @@ public abstract class JointRotation extends Joint {
 //			dts = 0.99f*distance / vitesse;
 //		}
 		while(distance>0.00005f || distance < 0 ){
+			System.out.println("try to recover from a bad collision: "+distance);
 			rotateALittle(dts, LR);
 			f.transfoMatrix.mult(LP, WP);
 			distance = planObjectif.pseudoDistance(WP);

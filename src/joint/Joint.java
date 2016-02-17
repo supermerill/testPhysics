@@ -17,13 +17,13 @@ public abstract class Joint {
 	}
 	
 	//update force & update pos
-	public void update(long instant, long dt){
-		System.out.println("update joint force for forme "+f+"@"+f.position);
-		updateForce(instant, dt);
-		System.out.println("update joint pos for forme "+f+"@"+f.position);
-		updatePosition(instant, dt);
-		System.out.println("update joint ended for forme "+f+"@"+f.position);
-	}
+//	public void update(long instant, long dt){
+//		System.out.println("update joint force for forme "+f+"@"+f.position);
+//		updateForce(instant, dt);
+//		System.out.println("update joint pos for forme "+f+"@"+f.position);
+//		updatePosition(instant, dt);
+//		System.out.println("update joint ended for forme "+f+"@"+f.position);
+//	}
 
 	//update rot&linear speed&position
 	public abstract void updatePosition(long instant, long dt);

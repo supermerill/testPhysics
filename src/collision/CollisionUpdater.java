@@ -57,7 +57,6 @@ public class CollisionUpdater {
 					System.out.println("dist: " + f1.position.distance(f2.position) + " ? "
 							+ (f1.roundBBRayon + f2.roundBBRayon) + "+" + (f1.vitesse.length() + f2.vitesse.length())
 							* dts);
-					System.out.println("pos f1@"+f1.position+", f2@"+f2.position);
 					//TODOAFTER: instead of check if near, check if it can collide with speed?
 					if (f1.position.distance(f2.position) < f1.roundBBRayon*2 + f2.roundBBRayon*2
 							+ (f1.vitesse.length() + f2.vitesse.length()) * dts) {
@@ -149,14 +148,14 @@ public class CollisionUpdater {
 			f.vitesse.addLocal(f.calculF);
 			f.calculF.set(f.acceleration).multLocal(dts * 0.5f);
 			f.vitesse.addLocal(f.calculF);
-			System.out.println("now speed = " + f.vitesse);
+			System.out.println(f.name+"now speed = " + f.vitesse);
 
 			// update angular speed
 			f.calculF.set(f.lastAangulaire).multLocal(dts * 0.5f);
 			f.vangulaire.addLocal(f.calculF);
 			f.calculF.set(f.aangulaire).multLocal(dts * 0.5f);
 			f.vangulaire.addLocal(f.calculF);
-			System.out.println("now aspeed = " + f.vangulaire);
+			System.out.println(f.name+"now aspeed = " + f.vangulaire);
 		} else {
 
 			// check number of collision
@@ -343,7 +342,14 @@ public class CollisionUpdater {
 				
 				
 				
-				// collision(s), use the nearset one.
+				// collision(s), find the best!
+				// ie find the first collision
+				// ie min(dt) with distance - vitesse*dt = 0
+				// => min(distance/vitesse)
+				// mais cela peut ne pas fonctionner: objets jointés, mouvements bizarre...
+				// => il faut tous les faire! et les ordonner par temps
+				// => ensuite, on applique le premier
+				// => et on recommence avec une liste de colision possible moins un element
 				int idxCollision = 0;
 				for (int i = 1; i < f.collideAt.size(); i++) {
 					// TODO
@@ -421,6 +427,10 @@ public class CollisionUpdater {
 
 				float vitP = vitesseAP.add(pred.formePoint.vitesse).length();
 				float vitT = vitesseAT.add(pred.formeTri.vitesse).length();
+				
+				///reduce vitesse for recalage
+				vitP = 0;
+				vitT = 0;
 
 				float totalVit = vitesseAP.add(pred.formePoint.vitesse).subtractLocal(vitesseAT)
 						.subtractLocal(pred.formeTri.vitesse).length();

@@ -12,7 +12,9 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 import jme3Double.Vector3d;
+import joint.JointPonctuel;
 import joint.JointPose;
+import joint.JointRotation;
 
 import collision.CollisionUpdater;
 
@@ -193,6 +195,12 @@ public class Afficheur extends JComponent {
 //					System.out.println("finish sleep: "+currentMs+" =?= "+nextMs);
 					int diff = (int)(currentMs-previousMs) /5;
 //					System.out.println("diff: "+diff +" = "+currentMs+" - "+previousMs);
+					previousMs = currentMs;
+					
+					if(!view.keyPress.contains(KeyEvent.VK_SPACE)){
+						continue;
+					}
+					
 					System.out.println("NEW TURN ---------------------------------------------------------------------------------");
 					
 					//changements de forces ici!! (user input)
@@ -250,7 +258,6 @@ public class Afficheur extends JComponent {
 ////						f.angularForces.add(aforce);
 //						f.physicUpdate = true;
 //					}
-					previousMs = currentMs;
 					
 					
 					//calculate force & accel (and some speed)
@@ -270,7 +277,8 @@ public class Afficheur extends JComponent {
 						}
 						
 						//update forces & accels vector (sometimes even speed ones)
-						f.joint.update(currentMs, diff);
+						f.joint.updateForce(currentMs, diff);
+						f.joint.updatePosition(currentMs, diff);
 						System.out.println("f.joint.update edned "+f +"@"+f.position +" == "+f.joint.f+"@"
 								+f.joint.f.position);
 //						f.update(5*diff/2);
@@ -349,7 +357,7 @@ public class Afficheur extends JComponent {
 		int taille = 10;
 
 		g.setColor(c);
-		System.out.println("===DRAW===");
+//		System.out.println("===DRAW===");
 		for (Forme forme : formes) {
 //			System.out.println(" =Forme@"+forme.position+" : "+forme.transfoMatrix);
 			//create transformation matrix
@@ -381,13 +389,15 @@ public class Afficheur extends JComponent {
 						maxY - (int) (n.y + n.z / 2));
 			}
 			g.setColor(Color.RED);
-			for(int i=0;i<forme.normales.size(); i++){
-				Vector3f m = forme.transfoMatrix.mult(forme.points.get(i), null).multLocal(taille);
-				Vector3f n = m.add(forme.normales.get(i).mult(100));
-				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
-						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
-						maxY - (int) (n.y + n.z / 2));
-			}
+//			for(int i=0;i<forme.normales.size(); i++){
+//				Vector3f m = forme.transfoMatrix.mult(forme.points.get(i), null).multLocal(taille);
+//				Vector3f n = m.add(forme.normales.get(i).mult(100));
+//				g.drawLine(maxX + (int) (m.x + m.z / 2), maxY
+//						- (int) (m.y + m.z / 2), maxX + (int) (n.x + n.z / 2),
+//						maxY - (int) (n.y + n.z / 2));
+//			}
+			
+
 			if(forme.vangulaire.lengthSquared() != 0){
 				Vector3f m = forme.vangulaire.mult(1000).addLocal(forme.position.toVec3f().multLocal(taille));
 				Vector3f n = forme.position.toVec3f().multLocal(taille);
@@ -410,6 +420,21 @@ public class Afficheur extends JComponent {
 				}
 				
 			}
+			
+			g.setColor(Color.BLUE);
+			Vector3f pc = new Vector3f();
+			if(forme.joint instanceof JointRotation){
+				pc.set(((JointRotation)forme.joint).pointWRotation).multLocal(taille);
+				g.fillOval((int) (maxX + pc.x + pc.z / 2) - 2, (int) (maxY - pc.y - pc.z / 2) - 2, 5, 5);
+			}
+			g.setColor(Color.MAGENTA);
+			if(forme.joint instanceof JointPose){
+				for(Vector3f v : ((JointPose)forme.joint).points){
+					pc.set(v).multLocal(taille);
+					g.fillOval((int) (maxX + pc.x + pc.z / 2) - 2, (int) (maxY - pc.y - pc.z / 2) - 2, 5, 5);
+				}
+			}
+			
 		}
 
 	}

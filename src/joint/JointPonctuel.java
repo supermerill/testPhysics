@@ -40,7 +40,7 @@ public class JointPonctuel extends JointRotation {
 		this.idxOpposite = idxOpposite;
 		
 
-		System.out.println("JP new Joint ponctuel has: "+f+" : " + pointWRotation + ".distance("
+		System.out.println("JPc new Joint ponctuel has: "+f+" : " + pointWRotation + ".distance("
 				+f.transfoMatrix.mult(pointLRotation)
 				+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(pointLRotation))+" > 0.0001");
 	}
@@ -224,13 +224,13 @@ public class JointPonctuel extends JointRotation {
 					newSumAngular.addLocal(angularFfromLinear);
 					newSumAngular.divideLocal(f.getIntertiaMoment());
 					f.aangulaire.set(newSumAngular);
-					System.out.println("JP LEVIER+FORCE");
+					System.out.println("JPc LEVIER+FORCE");
 				}else{
 					//it can be free flight
 					Vector3f linearAtRot = sumAngular.cross(pointWRotation.subtract(fpos));
 					Vector3f isFreeflight = linearAtRot.subtract(normal);
 					if (isFreeflight.dot(linearAtRot) > 0) {
-						System.out.println("JP LEVIER-FORCE => FREE");
+						System.out.println("JPc LEVIER-FORCE => FREE");
 //						freeFlight = true;
 						f.joint = new JointFreeFlight(f);
 						f.joint.updateForce(instant, dt);
@@ -241,7 +241,7 @@ public class JointPonctuel extends JointRotation {
 //						
 						//freeFlight = true;
 					}else{
-						System.out.println("JP LEVIER-FORCE => ROT");
+						System.out.println("JPc LEVIER-FORCE => ROT");
 						//pareil, en principe le moment n'est pas bon...?
 						newSumAngular.addLocal(angularFfromLinear);
 						newSumAngular.divideLocal(f.getIntertiaMoment());
@@ -251,7 +251,7 @@ public class JointPonctuel extends JointRotation {
 				
 			}
 		}else{
-			System.out.println("JP point @"+this.pointLRotation+" is not in the right direction for angular pivot");
+			System.out.println("JPc point @"+this.pointLRotation+" is not in the right direction for angular pivot");
 			//=> ajouter en tant que force de rotation "free flight"
 			
 			//TODO: this rotation is not in pointWRotation !! 
@@ -263,7 +263,7 @@ public class JointPonctuel extends JointRotation {
 			Vector3f isFreeflight = linearAtRot.subtract(normal);
 			
 			if (isFreeflight.dot(linearAtRot) > 0) {
-				System.out.println("JP -LEVIER-+FORCE => FREE");
+				System.out.println("JPc -LEVIER-+FORCE => FREE");
 //				freeFlight = true;
 				f.joint = new JointFreeFlight(f);
 				f.joint.updateForce(instant, dt);
@@ -274,7 +274,7 @@ public class JointPonctuel extends JointRotation {
 //				
 				//freeFlight = true;
 			}else{
-				System.out.println("JP -LEVIER-+FORCE => ROT");
+				System.out.println("JPc -LEVIER-+FORCE => ROT");
 				//pareil, en principe le moment n'est pas bon...
 				sumAngular.addLocal(angularFfromLinear);
 				sumAngular.divideLocal(f.getIntertiaMoment());
@@ -282,7 +282,7 @@ public class JointPonctuel extends JointRotation {
 			}
 			
 		}
-		System.out.println("JP f.aangulaire="+f.aangulaire);
+		System.out.println("JPc f.aangulaire="+f.aangulaire);
 		
 		
 		

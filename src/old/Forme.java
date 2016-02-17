@@ -17,7 +17,7 @@ public class Forme {
 	
 	public String name;
 	public String toString(){ return name;}
-	Forme(String name){ this.name = name;}
+	public Forme(String name){ this.name = name;}
 	
 	///---------- phys/colision
 	public boolean physicUpdate = false;
@@ -54,15 +54,15 @@ public class Forme {
 	
 	//par rapport au centre de gravite
 	public Vector3d position = new Vector3d(0,0,0); // en m
-	public Vector3f vitesse = new Vector3f(0,0,0); // en m/ms
-	public Vector3f acceleration = new Vector3f(0,0,0); //en m/ms*ms
-	public Vector3f lastAccel = new Vector3f(0,0,0); //en m/ms*ms
+	public Vector3f vitesse = new Vector3f(0,0,0); // en m/s
+	public Vector3f acceleration = new Vector3f(0,0,0); //en m/s*s
+	public Vector3f lastAccel = new Vector3f(0,0,0); //en m/s*s
 
 //	public Vector3f posAxeRot = new Vector3f(0,0,0); //en m, local?
 	public Quaternion pangulaire = new Quaternion(Quaternion.IDENTITY); //en rad
-	public Vector3f vangulaire = new Vector3f(0,0,0); //en rad/ms
-	public Vector3f aangulaire = new Vector3f(0,0,0); //en rad/ms*ms
-	public Vector3f lastAangulaire = new Vector3f(0,0,0); //en rad/ms*ms
+	public Vector3f vangulaire = new Vector3f(0,0,0); //en rad/s
+	public Vector3f aangulaire = new Vector3f(0,0,0); //en rad/s*s
+	public Vector3f lastAangulaire = new Vector3f(0,0,0); //en rad/s*s
 
 	public Matrix4f transfoMatrix = new Matrix4f();
 	
