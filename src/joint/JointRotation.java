@@ -8,6 +8,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Matrix4f;
 import com.jme3.math.Plane;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 
 public abstract class JointRotation extends Joint {
@@ -99,6 +100,32 @@ public abstract class JointRotation extends Joint {
 //	Vector3f lastPos = new Vector3f();
 	@Override
 	public void gotoCollision(int pointIdx, Plane planeObj) {
+		
+		//TODO: new algo
+		// check the projection (T) of point (WP) in the axe of rotation.
+		// get the ray, intersection of planeObj with the plane defined by vect vangulaire at point T
+		// find the point (L) in the ray where |PT| = |LT| 
+		// compute the rotation to move P at L
+		// do the rotation
+		// correct the rotation if it's going too far or not enough (should not be necessary)
+
+		System.out.println("JR gotoCollision "+pointIdx+" => "+planeObj);
+		//get world pos
+		Vector3f WP = new Vector3f();
+		Vector3f LP = f.points.get(pointIdx);
+		f.transfoMatrix.mult(LP, WP);
+		
+		Vector3f WR = pointWRotation;
+		Vector3f LR = pointLRotation; //f.transfoMatrix.invert().mult(pointWRotation);
+		
+//		Vector3f WT = 
+		Plane planNormalWT2WP = new Plane();
+		
+				
+		
+		
+	}
+	public void gotoCollisionOld(int pointIdx, Plane planeObj) {
 		System.out.println("gotoCollision "+pointIdx+" => "+planeObj);
 		//get world pos
 		Vector3f WP = new Vector3f();

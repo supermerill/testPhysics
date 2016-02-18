@@ -340,337 +340,7 @@ public class CollisionUpdater {
 
 			} else {
 				
-				
-				
-				// collision(s), find the best!
-				// ie find the first collision
-				// ie min(dt) with distance - vitesse*dt = 0
-				// => min(distance/vitesse)
-				// mais cela peut ne pas fonctionner: objets jointés, mouvements bizarre...
-				// => il faut tous les faire! et les ordonner par temps
-				// => ensuite, on applique le premier
-				// => et on recommence avec une liste de colision possible moins un element
-				int idxCollision = 0;
-				for (int i = 1; i < f.collideAt.size(); i++) {
-					// TODO
-				}
-
-				CollisionPrediction pred = f.collideAt.get(idxCollision);
-				System.out.println("Triangle forme "+pred.formeTri+" pos @: " + pred.formeTri.position);
-				System.out.println("Triangle localPos: " + pred.localTA + ", " + pred.localTB + ", " + pred.localTC);
-				System.out.println("Triangle previousPos: " + pred.worldTA + ", " + pred.worldTB + ", " + pred.worldTC);
-				Vector3f tempVect = new Vector3f();
-				
-
-				if(pred.formeTri.joint instanceof JointPose){
-					JointPose joint = (JointPose) pred.formeTri.joint;
-					System.out.println("Check Coll forme tri "+pred.formeTri+" : ");
-					int numPointToCheckAeff = 0;
-					while (numPointToCheckAeff < joint.points.size()) {
-							Vector3f point = joint.points.get(numPointToCheckAeff);
-							System.out.println("Joint pose already has : " + point + ".distance("
-									+ pred.formeTri.transfoMatrix.mult(pred.formeTri.points.get(joint.pointsIdx.get(numPointToCheckAeff))) 
-									+ ") ="+point.distance(pred.formeTri.transfoMatrix.mult(pred.formeTri.points.get(joint.pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
-						numPointToCheckAeff ++;
-					}
-				}
-				if(pred.formeTri.joint instanceof JointPonctuel){
-					JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
-					System.out.println("Joint ponctuelP has : " + joint.pointWRotation + ".distance"+joint.pointLRotation+"("
-							+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
-							+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
-				}
-
-				if(pred.formePoint.joint instanceof JointPose){
-					JointPose joint = (JointPose) pred.formePoint.joint;
-					System.out.println("Check Coll forme point "+pred.formePoint+" : ");
-					int numPointToCheckAeff = 0;
-					while (numPointToCheckAeff < joint.points.size()) {
-							Vector3f point = joint.points.get(numPointToCheckAeff);
-							System.out.println("Joint pose already has : " + point + ".distance("
-									+ pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(joint.pointsIdx.get(numPointToCheckAeff))) 
-									+ ") ="+point.distance(pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(joint.pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
-						numPointToCheckAeff ++;
-					}
-				}
-				if(pred.formePoint.joint instanceof JointPonctuel){
-					JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
-					System.out.println("Joint ponctuelT has : " + joint.pointWRotation + ".distance"+joint.pointLRotation+"("
-							+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
-							+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
-				}
-
-				// move to collision point
-
-				// check what object to move
-				// Vector3f vitesseP2T =
-				// pred.formeTri.vitesse.negate().addLocal(pred.formePoint.vitesse);
-				Vector3f vitesseAPC = pred.formePoint.vangulaire.cross(pred.localP);
-				Vector3f vitesseATC = pred.formeTri.vangulaire.cross(tempVect.set(pred.localTA).addLocal(pred.localTB)
-						.addLocal(pred.localTC).divideLocal(3));
-
-				Vector3f vitesseAP = new Vector3f(vitesseAPC);
-				Vector3f vitesseAT = new Vector3f(vitesseATC);
-				// TODOAFTER: if you remove the angular velocity, maybe instead
-				// remove all interpolation here
-				// and use the fined-grained interpolation.
-				// remove angular interpolation if it's too high (more than 0.5
-				// rad/s).
-				// i'm not confident in this formulae, but it's not very
-				// important.
-				if (vitesseAP.lengthSquared() > FastMath.PI * .25f) {
-					vitesseAP.set(0, 0, 0);
-				}
-				if (vitesseAT.lengthSquared() > FastMath.PI * .25f) {
-					vitesseAT.set(0, 0, 0);
-				}
-
-				float vitP = vitesseAP.add(pred.formePoint.vitesse).length();
-				float vitT = vitesseAT.add(pred.formeTri.vitesse).length();
-				
-				///reduce vitesse for recalage
-				vitP = 0;
-				vitT = 0;
-
-				float totalVit = vitesseAP.add(pred.formePoint.vitesse).subtractLocal(vitesseAT)
-						.subtractLocal(pred.formeTri.vitesse).length();
-				if (totalVit == 0)
-					totalVit = 1;
-				float percentVitP = vitP / totalVit;
-				float percentVitT = vitT / totalVit;
-				System.out.println("vitesseAP=" + vitesseAP + ", vitesseAT=" + vitesseAT);
-				System.out.println("pred.formePoint.vitesse=" + pred.formePoint.vitesse + ", pred.formeTri.vitesse="
-						+ pred.formeTri.vitesse);
-				System.out
-						.println("vitesseAP.add(pred.formePoint.vitesse).subtractLocal(vitesseAT).subtractLocal(pred.formeTri.vitesse).length()="
-								+ vitesseAP.add(pred.formePoint.vitesse).subtractLocal(vitesseAT)
-										.subtractLocal(pred.formeTri.vitesse).length());
-				System.out.println("vitP=" + vitP + ", vitT=" + vitT + ", totalVit=" + totalVit);
-				System.out.println("formeTri %vit : " + percentVitT);
-				// percentVitP+percentVitT is >= 1
-				
-				// System.out.println("previous FormePoint : " +
-				// pred.formePoint.position);
-				System.out.println("previous PointPos : " + pred.formePoint.transfoMatrix.mult(pred.localP));
-				// System.out.println("objectif FormePoint : " +
-				// pred.formePoint.position.toVec3f().addLocal(pred.bestP.subtract(pred.worldP).mult(percentVitP)));
-				if (percentVitP > 0) {
-					float percentIntegrate = percentVitP * pred.bestP.distance(pred.worldP) / vitP;
-					pred.formePoint.calculF.set(pred.formePoint.vitesse).multLocal(percentIntegrate);
-					pred.formePoint.position.addLocal(pred.formePoint.calculF);
-					Quaternion quaterAdd = new Quaternion().fromAngleAxis(pred.formePoint.vangulaire.length()
-							* percentIntegrate, pred.formePoint.vangulaire);
-					pred.formePoint.pangulaire.multLocal(quaterAdd);
-					pred.formePoint.pangulaire.normalizeLocal();
-					pred.formePoint.transfoMatrix.setTransform(
-							pred.formePoint.position.toVec3fLocal(pred.formePoint.calculF), Vector3f.UNIT_XYZ,
-							pred.formePoint.pangulaire.toRotationMatrix());
-					// pred.formePoint.position.addLocal(pred.bestP.subtract(pred.worldP).mult(percentVitP));
-					// pred.formePoint.transfoMatrix.setTransform(
-					// pred.formePoint.position.toVec3fLocal(pred.formePoint.calculF),
-					// Vector3f.UNIT_XYZ,
-					// pred.formePoint.pangulaire.toRotationMatrix());
-					pred.formePoint.joint.updatePosition(currentTime, (long)(dts*(double)percentVitP));
-				}
-				System.out.println("after FormePoint : " + pred.formePoint.position);
-				System.out.println("after PointPos : " + pred.formePoint.transfoMatrix.mult(pred.localP));
-				System.out.println("needed PointPos : " + pred.bestP);
-
-				System.out.println("previous formeTri : " + pred.formeTri.position);
-				System.out.println("objectif formeTri : "
-						+ pred.formeTri.position.toVec3f()
-								.addLocal(pred.bestP.subtract(pred.worldP).mult(-percentVitT)));
-
-				// System.out.println("previous formeTriS : " + percentVitT);
-				// System.out.println("previous pred.worldP.subtract(pred.bestP) : "
-				// + pred.worldP.subtract(pred.bestP));
-				// pred.formeTri.position.addLocal(vitesseAT.mult(percentVitT));
-				System.out.println("previous computedPointOnTri : " + pred.bestP);
-				Vector3f localBestPos = pred.formeTri.transfoMatrix.invert().mult(pred.bestP);
-				if (percentVitT > 0) {
-					float percentIntegrate = percentVitT * pred.bestP.distance(pred.worldP) / vitT;
-					System.out.println("dist=" + pred.bestP.distance(pred.worldP) + ", percentIntegrate : "
-							+ percentIntegrate);
-					pred.formeTri.calculF.set(pred.formeTri.vitesse).multLocal(percentIntegrate);
-					pred.formeTri.position.addLocal(pred.formeTri.calculF);
-					Quaternion quaterAdd = new Quaternion().fromAngleAxis(pred.formeTri.vangulaire.length()
-							* percentIntegrate, pred.formeTri.vangulaire);
-					pred.formeTri.pangulaire.multLocal(quaterAdd);
-					pred.formeTri.pangulaire.normalizeLocal();
-					pred.formeTri.transfoMatrix.setTransform(
-							pred.formeTri.position.toVec3fLocal(pred.formeTri.calculF), Vector3f.UNIT_XYZ,
-							pred.formeTri.pangulaire.toRotationMatrix());
-					// pred.formeTri.position.addLocal(pred.worldP.subtract(pred.bestP).mult(percentVitT));
-					// pred.formeTri.transfoMatrix.setTransform(pred.formeTri.position.toVec3fLocal(pred.formeTri.calculF),
-					// Vector3f.UNIT_XYZ,
-					// pred.formeTri.pangulaire.toRotationMatrix());
-					pred.formePoint.joint.updatePosition(currentTime, (long)(dts*(double)percentVitT));
-				}
-				System.out.println("after formeTri : " + pred.formeTri.position);
-				System.out.println("after PointPos(tri) : " + pred.formePoint.transfoMatrix.mult(pred.localP));
-				pred.formeTri.transfoMatrix.mult(localBestPos, pred.bestP);
-				// System.out.println("computed needed PointPos(tri) : " +
-				// pred.bestP);
-				System.out.println("computed obj PointPos(tri) : " + pred.bestP);
-				System.out.println("computed needed PointPos(triFromP) : "
-						+ pred.formePoint.transfoMatrix.mult(pred.localP, new Vector3f()));
-
-				// check if no other points are inside the two objects
-				// if any, do ???
-				// TODOAFTER
-
-				if(pred.formeTri.joint instanceof JointPonctuel){
-					JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
-					System.out.println("2Joint ponctuel has : " + joint.pointWRotation + ".distance("
-							+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
-							+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
-				}
-				if(pred.formePoint.joint instanceof JointPonctuel){
-					JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
-					System.out.println("2Joint ponctuel has : " + joint.pointWRotation + ".distance("
-							+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
-							+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
-				}
-					
-
-				// just check if on the same plane, or almost
-				Vector3f tempA = new Vector3f();
-				Vector3f tempB = new Vector3f();
-				Vector3f tempC = new Vector3f();
-				Vector3f tempP = new Vector3f();
-				tempA = pred.formeTri.transfoMatrix.mult(pred.localTA, new Vector3f());
-				tempB = pred.formeTri.transfoMatrix.mult(pred.localTB, new Vector3f());
-				tempC = pred.formeTri.transfoMatrix.mult(pred.localTC, new Vector3f());
-				tempP = pred.formePoint.transfoMatrix.mult(pred.localP, new Vector3f());
-				Plane planTri = new Plane();
-				planTri.setPlanePoints(tempA, tempB, tempC);
-				System.out.println("Point previousPos : " + pred.worldP);
-				System.out.println("Point computedPos : " + pred.bestP);
-				System.out.println("Point newPos : " + tempP);
-				System.out.println("Triangle previousPos: " + pred.worldTA + ", " + pred.worldTB + ", " + pred.worldTC);
-				System.out.println("Triangle newPos: " + tempA + ", " + tempB + ", " + tempC);
-
-//				Ray ray = new Ray();
-//				ray.setOrigin(tempP);
-//				ray.setDirection(pred.rayon.direction);
-//				System.out.print("rayon touche: " + ray.intersects(tempA, tempB, tempC));
-//				ray.intersectWhere(tempA, tempB, tempC, tempVect);
-//				System.out.println(" @" + tempVect);
-//				ray.setDirection(pred.rayon.direction.negate());
-//				System.out.print("rayonN touche: " + ray.intersects(tempA, tempB, tempC));
-//				ray.intersectWhere(tempA, tempB, tempC, tempVect);
-//				System.out.println(" @" + tempVect);
-//				System.out.println("pred.formePoint.position : " + pred.formePoint.position);
-
-				// ok for linear only
-
-				// now split the geometry (in the same plane)
-				//TODO?: check if an existing point is already here, then use it
-				//	 c'est mieux quand on a un système oscilant ou coincé mais mouvant  ?
-				createNewPoint(pred.formeTri, pred.triIdx, pred.bestP);
-				int idxNewPointInTri = pred.formeTri.points.size() -1;
-
-				// now it's sufficiently near for low-velocity objects
-				// but it's not enough for high-velocity (and with angular
-				// interpolation removed).
-				Vector3f previousBestP = new Vector3f();
-				//TODO: sometimes, it fail to integrate with a sufficient precision.
-				//TODO: why 2 boucle? use only 1! => do the rotation/translation to the plane!
-				do{
-					previousBestP.set(pred.bestP);
-					System.out.println("pred.formePoint.position : " + pred.formePoint.position);
-					int possibilityJointP = pred.formePoint.joint.degreeOfLiberty();
-					int possibilityJointT = pred.formeTri.joint.degreeOfLiberty();
-					if (possibilityJointP > possibilityJointT) {
-						pred.formePoint.joint.gotoCollision(pred.pointIdx, planTri);
-					} else if (possibilityJointP > possibilityJointT) {
-						pred.formeTri.joint.gotoCollision(pred.localTA, pred.localTB, pred.localTC, tempP);
-					} else {
-						// use the one who move faster
-						if (vitesseAPC.addLocal(pred.formePoint.vitesse).length() >= vitesseATC.addLocal(
-								pred.formeTri.vitesse).length()) {
-							pred.formePoint.joint.gotoCollision(pred.pointIdx, planTri);
-						} else {
-							pred.formeTri.joint.gotoCollision(pred.localTA, pred.localTB, pred.localTC,  tempP);
-						}
-					}
-					System.out.println("pred.formePoint.position AFTER : " + pred.formePoint.position);
-					System.out.println("Point newPos5 : " + tempP);
-					// now place tri at the right place (with thing as long as 200m
-					// in rotation, it can create error like 0.8m)
-					//now, with gotoCollision done, the error is below 0.1 mm
-					Vector3f localTriP = pred.formeTri.points.get(idxNewPointInTri);
-					tempA = pred.formeTri.transfoMatrix.mult(pred.localTA, new Vector3f());
-					tempB = pred.formeTri.transfoMatrix.mult(pred.localTB, new Vector3f());
-					tempC = pred.formeTri.transfoMatrix.mult(pred.localTC, new Vector3f());
-					tempP = pred.formePoint.transfoMatrix.mult(pred.localP, new Vector3f());
-					System.out.println("Point newPos6 : " + tempP);
-					planTri.setPlanePoints(tempA, tempB, tempC);
-					pred.bestP = planTri.getClosestPoint(tempP);
-					System.out.println("set tri point from "+pred.formeTri.transfoMatrix.mult(localTriP)
-							+" to "+pred.bestP+" near "+tempP+" => dist="+tempP.distance(pred.bestP)+" =?= "
-							+ planTri.pseudoDistance(tempP));
-					localTriP.set(pred.formeTri.transfoMatrix.invert().mult(pred.bestP));
-				
-				}while(tempP.distance(pred.bestP)>0.00005f && !previousBestP.equals(pred.bestP));
-
-				//TODO
-				//if one is inside the other and we failed to recover
-				// => revert to previous good pos and integrate eux deux with small steps
-				// instead of a big for eux deux + small ones for un seul.
-				
-				
-				// create the link between the two objects
-				// JointPonctuel joint = new JointPonctuel();
-				// joint.f1 = pred.formeTri;
-				// joint.idxPointf1 = idxNewPointInTri;
-				// joint.f2 = pred.formePoint;
-				// joint.idxPointf2 = pred.pointIdx;
-				// joint.point = pred.bestP;
-				// pred.formePoint.joint.add(joint);
-				// pred.formeTri.joint.add(joint);
-				System.out.println("CU add a new colision point (P): "+pred.formePoint+" : "+tempP+" == "
-				+pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(pred.pointIdx)));
-				pred.formePoint.joint.addCollisionPoint(tempP, pred.pointIdx, 
-						pred.formeTri,  idxNewPointInTri);
-				System.out.println("CU add a new colision point (T): "+pred.formeTri+" : "+pred.bestP+" == "
-				+pred.formeTri.transfoMatrix.mult(pred.formeTri.points.get(idxNewPointInTri)));
-				pred.formeTri.joint.addCollisionPoint(pred.bestP, idxNewPointInTri,
-						pred.formePoint, pred.pointIdx);
-
-				// TODO add energy->spedd from the current velocity ?
-				System.out.println("COLLISON => REMOVE ALL SPEED");
-				pred.formePoint.vangulaire.set(0, 0, 0);
-				pred.formePoint.vitesse.set(0, 0, 0);
-				pred.formePoint.acceleration.set(0, 0, 0);
-				pred.formePoint.aangulaire.set(0, 0, 0);
-				pred.formeTri.vangulaire.set(0, 0, 0);
-				pred.formeTri.vitesse.set(0, 0, 0);
-				pred.formeTri.acceleration.set(0, 0, 0);
-				pred.formeTri.aangulaire.set(0, 0, 0);
-
-				// clear collision, need to re-init all of them now.
-				pred.formePoint.collideAt.clear();
-				pred.formeTri.collideAt.clear();
-				predictions.remove(pred);
-				// joint.computeJointForce(pred.formePoint);
-				// joint.computeJointForce(pred.formeTri);
-
-
-				if(pred.formeTri.joint instanceof JointPonctuel){
-					JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
-					System.out.println("CU 3Joint ponctuel has (T): " + joint.pointWRotation + ".distance("
-							+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
-							+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
-				}
-				if(pred.formePoint.joint instanceof JointPonctuel){
-					JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
-					System.out.println("CU 3Joint ponctuel has (P): " + joint.pointWRotation + ".distance("
-							+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
-							+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
-				}
-				
-
+				resolveCollisionIntegration(f, currentTime, dtms);
 			}
 
 		}
@@ -684,6 +354,386 @@ public class CollisionUpdater {
 		// f.aangulaire = temp;
 
 	}
+	
+	private void resolveCollisionIntegration(Forme f, long currentTime, long dtms) {
+		double dts = dtms/1000;
+
+		// collision(s), find the best!
+		// ie find the first collision
+		// ie min(dt) with distance - vitesse*dt = 0
+		// => min(distance/vitesse)
+		// mais cela peut ne pas fonctionner: objets jointés, mouvements bizarre...
+		// => il faut tous les faire! et les ordonner par temps
+		// => ensuite, on applique le premier
+		// => et on recommence avec une liste de colision possible moins un element
+		//PASSER AL LA V2 => spatio-temporel
+		
+		int idxCollision = 0;
+		for (int i = 1; i < f.collideAt.size(); i++) {
+			// TODO
+		}
+
+		CollisionPrediction pred = f.collideAt.get(idxCollision);
+
+		Forme f1 = pred.formePoint;
+		Forme f2 = pred.formeTri;
+		
+		Vector3f f1prevPos = f1.position.toVec3f();
+		Vector3f f2prevPos = f2.position.toVec3f();
+		Matrix4f f1prevMat = f1.transfoMatrix.mult(1);
+		Matrix4f f2prevMat = f2.transfoMatrix.mult(1);
+
+		Vector3f f1newPos = f1.position.toVec3f();
+		Vector3f f2newPos = f2.position.toVec3f();
+		Matrix4f f1newMat = f1.transfoMatrix.mult(1);
+		Matrix4f f2newMat = f2.transfoMatrix.mult(1);
+
+		long currentMs = currentTime;
+		long maxMs = currentTime+dtms;
+		
+		
+	}
+	
+	
+	
+	
+	private void resolveCollision(Forme f, long currentTime, long dtms) {
+		double dts = dtms/1000;
+
+		// collision(s), find the best!
+		// ie find the first collision
+		// ie min(dt) with distance - vitesse*dt = 0
+		// => min(distance/vitesse)
+		// mais cela peut ne pas fonctionner: objets jointés, mouvements bizarre...
+		// => il faut tous les faire! et les ordonner par temps
+		// => ensuite, on applique le premier
+		// => et on recommence avec une liste de colision possible moins un element
+		//PASSER AL LA V2 => spatio-temporel
+		
+		int idxCollision = 0;
+		for (int i = 1; i < f.collideAt.size(); i++) {
+			// TODO
+		}
+
+		CollisionPrediction pred = f.collideAt.get(idxCollision);
+		System.out.println("Triangle forme "+pred.formeTri+" pos @: " + pred.formeTri.position);
+		System.out.println("Triangle localPos: " + pred.localTA + ", " + pred.localTB + ", " + pred.localTC);
+		System.out.println("Triangle previousPos: " + pred.worldTA + ", " + pred.worldTB + ", " + pred.worldTC);
+		Vector3f tempVect = new Vector3f();
+		
+
+		if(pred.formeTri.joint instanceof JointPose){
+			JointPose joint = (JointPose) pred.formeTri.joint;
+			System.out.println("Check Coll forme tri "+pred.formeTri+" : ");
+			int numPointToCheckAeff = 0;
+			while (numPointToCheckAeff < joint.points.size()) {
+					Vector3f point = joint.points.get(numPointToCheckAeff);
+					System.out.println("Joint pose already has : " + point + ".distance("
+							+ pred.formeTri.transfoMatrix.mult(pred.formeTri.points.get(joint.pointsIdx.get(numPointToCheckAeff))) 
+							+ ") ="+point.distance(pred.formeTri.transfoMatrix.mult(pred.formeTri.points.get(joint.pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
+				numPointToCheckAeff ++;
+			}
+		}
+		if(pred.formeTri.joint instanceof JointPonctuel){
+			JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
+			System.out.println("Joint ponctuelP has : " + joint.pointWRotation + ".distance"+joint.pointLRotation+"("
+					+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
+					+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+		}
+
+		if(pred.formePoint.joint instanceof JointPose){
+			JointPose joint = (JointPose) pred.formePoint.joint;
+			System.out.println("Check Coll forme point "+pred.formePoint+" : ");
+			int numPointToCheckAeff = 0;
+			while (numPointToCheckAeff < joint.points.size()) {
+					Vector3f point = joint.points.get(numPointToCheckAeff);
+					System.out.println("Joint pose already has : " + point + ".distance("
+							+ pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(joint.pointsIdx.get(numPointToCheckAeff))) 
+							+ ") ="+point.distance(pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(joint.pointsIdx.get(numPointToCheckAeff))))+" > 0.0001");
+				numPointToCheckAeff ++;
+			}
+		}
+		if(pred.formePoint.joint instanceof JointPonctuel){
+			JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
+			System.out.println("Joint ponctuelT has : " + joint.pointWRotation + ".distance"+joint.pointLRotation+"("
+					+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
+					+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+		}
+
+		// move to collision point
+
+		// check what object to move
+		// Vector3f vitesseP2T =
+		// pred.formeTri.vitesse.negate().addLocal(pred.formePoint.vitesse);
+		Vector3f vitesseAPC = pred.formePoint.vangulaire.cross(pred.localP);
+		Vector3f vitesseATC = pred.formeTri.vangulaire.cross(tempVect.set(pred.localTA).addLocal(pred.localTB)
+				.addLocal(pred.localTC).divideLocal(3));
+
+		Vector3f vitesseAP = new Vector3f(vitesseAPC);
+		Vector3f vitesseAT = new Vector3f(vitesseATC);
+		// TODOAFTER: if you remove the angular velocity, maybe instead
+		// remove all interpolation here
+		// and use the fined-grained interpolation.
+		// remove angular interpolation if it's too high (more than 0.5
+		// rad/s).
+		// i'm not confident in this formulae, but it's not very
+		// important.
+		if (vitesseAP.lengthSquared() > FastMath.PI * .25f) {
+			vitesseAP.set(0, 0, 0);
+		}
+		if (vitesseAT.lengthSquared() > FastMath.PI * .25f) {
+			vitesseAT.set(0, 0, 0);
+		}
+
+		float vitP = vitesseAP.add(pred.formePoint.vitesse).length();
+		float vitT = vitesseAT.add(pred.formeTri.vitesse).length();
+		
+		///reduce vitesse for recalage
+		vitP = 0;
+		vitT = 0;
+
+		float totalVit = vitesseAP.add(pred.formePoint.vitesse).subtractLocal(vitesseAT)
+				.subtractLocal(pred.formeTri.vitesse).length();
+		if (totalVit == 0)
+			totalVit = 1;
+		float percentVitP = vitP / totalVit;
+		float percentVitT = vitT / totalVit;
+		System.out.println("vitesseAP=" + vitesseAP + ", vitesseAT=" + vitesseAT);
+		System.out.println("pred.formePoint.vitesse=" + pred.formePoint.vitesse + ", pred.formeTri.vitesse="
+				+ pred.formeTri.vitesse);
+		System.out
+				.println("vitesseAP.add(pred.formePoint.vitesse).subtractLocal(vitesseAT).subtractLocal(pred.formeTri.vitesse).length()="
+						+ vitesseAP.add(pred.formePoint.vitesse).subtractLocal(vitesseAT)
+								.subtractLocal(pred.formeTri.vitesse).length());
+		System.out.println("vitP=" + vitP + ", vitT=" + vitT + ", totalVit=" + totalVit);
+		System.out.println("formeTri %vit : " + percentVitT);
+		// percentVitP+percentVitT is >= 1
+		
+		// System.out.println("previous FormePoint : " +
+		// pred.formePoint.position);
+		System.out.println("previous PointPos : " + pred.formePoint.transfoMatrix.mult(pred.localP));
+		// System.out.println("objectif FormePoint : " +
+		// pred.formePoint.position.toVec3f().addLocal(pred.bestP.subtract(pred.worldP).mult(percentVitP)));
+		if (percentVitP > 0) {
+			float percentIntegrate = percentVitP * pred.bestP.distance(pred.worldP) / vitP;
+			pred.formePoint.calculF.set(pred.formePoint.vitesse).multLocal(percentIntegrate);
+			pred.formePoint.position.addLocal(pred.formePoint.calculF);
+			Quaternion quaterAdd = new Quaternion().fromAngleAxis(pred.formePoint.vangulaire.length()
+					* percentIntegrate, pred.formePoint.vangulaire);
+			pred.formePoint.pangulaire.multLocal(quaterAdd);
+			pred.formePoint.pangulaire.normalizeLocal();
+			pred.formePoint.transfoMatrix.setTransform(
+					pred.formePoint.position.toVec3fLocal(pred.formePoint.calculF), Vector3f.UNIT_XYZ,
+					pred.formePoint.pangulaire.toRotationMatrix());
+			// pred.formePoint.position.addLocal(pred.bestP.subtract(pred.worldP).mult(percentVitP));
+			// pred.formePoint.transfoMatrix.setTransform(
+			// pred.formePoint.position.toVec3fLocal(pred.formePoint.calculF),
+			// Vector3f.UNIT_XYZ,
+			// pred.formePoint.pangulaire.toRotationMatrix());
+			pred.formePoint.joint.updatePosition(currentTime, (long)(dts*(double)percentVitP));
+		}
+		System.out.println("after FormePoint : " + pred.formePoint.position);
+		System.out.println("after PointPos : " + pred.formePoint.transfoMatrix.mult(pred.localP));
+		System.out.println("needed PointPos : " + pred.bestP);
+
+		System.out.println("previous formeTri : " + pred.formeTri.position);
+		System.out.println("objectif formeTri : "
+				+ pred.formeTri.position.toVec3f()
+						.addLocal(pred.bestP.subtract(pred.worldP).mult(-percentVitT)));
+
+		// System.out.println("previous formeTriS : " + percentVitT);
+		// System.out.println("previous pred.worldP.subtract(pred.bestP) : "
+		// + pred.worldP.subtract(pred.bestP));
+		// pred.formeTri.position.addLocal(vitesseAT.mult(percentVitT));
+		System.out.println("previous computedPointOnTri : " + pred.bestP);
+		Vector3f localBestPos = pred.formeTri.transfoMatrix.invert().mult(pred.bestP);
+		if (percentVitT > 0) {
+			float percentIntegrate = percentVitT * pred.bestP.distance(pred.worldP) / vitT;
+			System.out.println("dist=" + pred.bestP.distance(pred.worldP) + ", percentIntegrate : "
+					+ percentIntegrate);
+			pred.formeTri.calculF.set(pred.formeTri.vitesse).multLocal(percentIntegrate);
+			pred.formeTri.position.addLocal(pred.formeTri.calculF);
+			Quaternion quaterAdd = new Quaternion().fromAngleAxis(pred.formeTri.vangulaire.length()
+					* percentIntegrate, pred.formeTri.vangulaire);
+			pred.formeTri.pangulaire.multLocal(quaterAdd);
+			pred.formeTri.pangulaire.normalizeLocal();
+			pred.formeTri.transfoMatrix.setTransform(
+					pred.formeTri.position.toVec3fLocal(pred.formeTri.calculF), Vector3f.UNIT_XYZ,
+					pred.formeTri.pangulaire.toRotationMatrix());
+			// pred.formeTri.position.addLocal(pred.worldP.subtract(pred.bestP).mult(percentVitT));
+			// pred.formeTri.transfoMatrix.setTransform(pred.formeTri.position.toVec3fLocal(pred.formeTri.calculF),
+			// Vector3f.UNIT_XYZ,
+			// pred.formeTri.pangulaire.toRotationMatrix());
+			pred.formePoint.joint.updatePosition(currentTime, (long)(dts*(double)percentVitT));
+		}
+		System.out.println("after formeTri : " + pred.formeTri.position);
+		System.out.println("after PointPos(tri) : " + pred.formePoint.transfoMatrix.mult(pred.localP));
+		pred.formeTri.transfoMatrix.mult(localBestPos, pred.bestP);
+		// System.out.println("computed needed PointPos(tri) : " +
+		// pred.bestP);
+		System.out.println("computed obj PointPos(tri) : " + pred.bestP);
+		System.out.println("computed needed PointPos(triFromP) : "
+				+ pred.formePoint.transfoMatrix.mult(pred.localP, new Vector3f()));
+
+		// check if no other points are inside the two objects
+		// if any, do ???
+		// TODOAFTER
+
+		if(pred.formeTri.joint instanceof JointPonctuel){
+			JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
+			System.out.println("2Joint ponctuel has : " + joint.pointWRotation + ".distance("
+					+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
+					+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+		}
+		if(pred.formePoint.joint instanceof JointPonctuel){
+			JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
+			System.out.println("2Joint ponctuel has : " + joint.pointWRotation + ".distance("
+					+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
+					+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+		}
+			
+
+		// just check if on the same plane, or almost
+		Vector3f tempA = new Vector3f();
+		Vector3f tempB = new Vector3f();
+		Vector3f tempC = new Vector3f();
+		Vector3f tempP = new Vector3f();
+		tempA = pred.formeTri.transfoMatrix.mult(pred.localTA, new Vector3f());
+		tempB = pred.formeTri.transfoMatrix.mult(pred.localTB, new Vector3f());
+		tempC = pred.formeTri.transfoMatrix.mult(pred.localTC, new Vector3f());
+		tempP = pred.formePoint.transfoMatrix.mult(pred.localP, new Vector3f());
+		Plane planTri = new Plane();
+		planTri.setPlanePoints(tempA, tempB, tempC);
+		System.out.println("Point previousPos : " + pred.worldP);
+		System.out.println("Point computedPos : " + pred.bestP);
+		System.out.println("Point newPos : " + tempP);
+		System.out.println("Triangle previousPos: " + pred.worldTA + ", " + pred.worldTB + ", " + pred.worldTC);
+		System.out.println("Triangle newPos: " + tempA + ", " + tempB + ", " + tempC);
+
+//		Ray ray = new Ray();
+//		ray.setOrigin(tempP);
+//		ray.setDirection(pred.rayon.direction);
+//		System.out.print("rayon touche: " + ray.intersects(tempA, tempB, tempC));
+//		ray.intersectWhere(tempA, tempB, tempC, tempVect);
+//		System.out.println(" @" + tempVect);
+//		ray.setDirection(pred.rayon.direction.negate());
+//		System.out.print("rayonN touche: " + ray.intersects(tempA, tempB, tempC));
+//		ray.intersectWhere(tempA, tempB, tempC, tempVect);
+//		System.out.println(" @" + tempVect);
+//		System.out.println("pred.formePoint.position : " + pred.formePoint.position);
+
+		// ok for linear only
+
+		// now split the geometry (in the same plane)
+		//TODO?: check if an existing point is already here, then use it
+		//	 c'est mieux quand on a un système oscilant ou coincé mais mouvant  ?
+		createNewPoint(pred.formeTri, pred.triIdx, pred.bestP);
+		int idxNewPointInTri = pred.formeTri.points.size() -1;
+
+		// now it's sufficiently near for low-velocity objects
+		// but it's not enough for high-velocity (and with angular
+		// interpolation removed).
+		Vector3f previousBestP = new Vector3f();
+		//TODO: sometimes, it fail to integrate with a sufficient precision.
+		//TODO: why 2 boucle? use only 1! => do the rotation/translation to the plane!
+		do{
+			previousBestP.set(pred.bestP);
+			System.out.println("pred.formePoint.position : " + pred.formePoint.position);
+			int possibilityJointP = pred.formePoint.joint.degreeOfLiberty();
+			int possibilityJointT = pred.formeTri.joint.degreeOfLiberty();
+			if (possibilityJointP > possibilityJointT) {
+				pred.formePoint.joint.gotoCollision(pred.pointIdx, planTri);
+			} else if (possibilityJointP > possibilityJointT) {
+				pred.formeTri.joint.gotoCollision(pred.localTA, pred.localTB, pred.localTC, tempP);
+			} else {
+				// use the one who move faster
+				if (vitesseAPC.addLocal(pred.formePoint.vitesse).length() >= vitesseATC.addLocal(
+						pred.formeTri.vitesse).length()) {
+					pred.formePoint.joint.gotoCollision(pred.pointIdx, planTri);
+				} else {
+					pred.formeTri.joint.gotoCollision(pred.localTA, pred.localTB, pred.localTC,  tempP);
+				}
+			}
+			System.out.println("pred.formePoint.position AFTER : " + pred.formePoint.position);
+			System.out.println("Point newPos5 : " + tempP);
+			// now place tri at the right place (with thing as long as 200m
+			// in rotation, it can create error like 0.8m)
+			//now, with gotoCollision done, the error is below 0.1 mm
+			Vector3f localTriP = pred.formeTri.points.get(idxNewPointInTri);
+			tempA = pred.formeTri.transfoMatrix.mult(pred.localTA, new Vector3f());
+			tempB = pred.formeTri.transfoMatrix.mult(pred.localTB, new Vector3f());
+			tempC = pred.formeTri.transfoMatrix.mult(pred.localTC, new Vector3f());
+			tempP = pred.formePoint.transfoMatrix.mult(pred.localP, new Vector3f());
+			System.out.println("Point newPos6 : " + tempP);
+			planTri.setPlanePoints(tempA, tempB, tempC);
+			pred.bestP = planTri.getClosestPoint(tempP);
+			System.out.println("set tri point from "+pred.formeTri.transfoMatrix.mult(localTriP)
+					+" to "+pred.bestP+" near "+tempP+" => dist="+tempP.distance(pred.bestP)+" =?= "
+					+ planTri.pseudoDistance(tempP));
+			localTriP.set(pred.formeTri.transfoMatrix.invert().mult(pred.bestP));
+		
+		}while(tempP.distance(pred.bestP)>0.00005f && !previousBestP.equals(pred.bestP));
+
+		//TODO
+		//if one is inside the other and we failed to recover
+		// => revert to previous good pos and integrate eux deux with small steps
+		// instead of a big for eux deux + small ones for un seul.
+		
+		
+		// create the link between the two objects
+		// JointPonctuel joint = new JointPonctuel();
+		// joint.f1 = pred.formeTri;
+		// joint.idxPointf1 = idxNewPointInTri;
+		// joint.f2 = pred.formePoint;
+		// joint.idxPointf2 = pred.pointIdx;
+		// joint.point = pred.bestP;
+		// pred.formePoint.joint.add(joint);
+		// pred.formeTri.joint.add(joint);
+		System.out.println("CU add a new colision point (P): "+pred.formePoint+" : "+tempP+" == "
+		+pred.formePoint.transfoMatrix.mult(pred.formePoint.points.get(pred.pointIdx)));
+		pred.formePoint.joint.addCollisionPoint(tempP, pred.pointIdx, 
+				pred.formeTri,  idxNewPointInTri);
+		System.out.println("CU add a new colision point (T): "+pred.formeTri+" : "+pred.bestP+" == "
+		+pred.formeTri.transfoMatrix.mult(pred.formeTri.points.get(idxNewPointInTri)));
+		pred.formeTri.joint.addCollisionPoint(pred.bestP, idxNewPointInTri,
+				pred.formePoint, pred.pointIdx);
+
+		// TODO add energy->spedd from the current velocity ?
+		System.out.println("COLLISON => REMOVE ALL SPEED");
+		pred.formePoint.vangulaire.set(0, 0, 0);
+		pred.formePoint.vitesse.set(0, 0, 0);
+		pred.formePoint.acceleration.set(0, 0, 0);
+		pred.formePoint.aangulaire.set(0, 0, 0);
+		pred.formeTri.vangulaire.set(0, 0, 0);
+		pred.formeTri.vitesse.set(0, 0, 0);
+		pred.formeTri.acceleration.set(0, 0, 0);
+		pred.formeTri.aangulaire.set(0, 0, 0);
+
+		// clear collision, need to re-init all of them now.
+		pred.formePoint.collideAt.clear();
+		pred.formeTri.collideAt.clear();
+		predictions.remove(pred);
+		// joint.computeJointForce(pred.formePoint);
+		// joint.computeJointForce(pred.formeTri);
+
+
+		if(pred.formeTri.joint instanceof JointPonctuel){
+			JointPonctuel joint = (JointPonctuel) pred.formeTri.joint;
+			System.out.println("CU 3Joint ponctuel has (T): " + joint.pointWRotation + ".distance("
+					+pred.formeTri.transfoMatrix.mult(joint.pointLRotation)
+					+ ") ="+joint.pointWRotation.distance(pred.formeTri.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+		}
+		if(pred.formePoint.joint instanceof JointPonctuel){
+			JointPonctuel joint = (JointPonctuel) pred.formePoint.joint;
+			System.out.println("CU 3Joint ponctuel has (P): " + joint.pointWRotation + ".distance("
+					+pred.formePoint.transfoMatrix.mult(joint.pointLRotation)
+					+ ") ="+joint.pointWRotation.distance(pred.formePoint.transfoMatrix.mult(joint.pointLRotation))+" > 0.0001");
+		}
+		
+
+	}
+	
+	
 
 	private Vector3f createNewPoint(Forme formeTri, int triIdx, Vector3f newPoint) {
 		System.out.println("create new point @" + newPoint);

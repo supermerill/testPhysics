@@ -17,7 +17,7 @@ public class Triangle {
 
 	public int a, b, c;
 	public double bbRound; // roundbounding box
-	public Vector3d center;
+	public Vector3d center; // in local repere
 
 	public String toString() {
 		return a + "," + b + "," + c;

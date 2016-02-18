@@ -4,6 +4,8 @@ import java.util.HashMap;
 
 import v2.collision.AABB;
 import v2.collision.CollisionPrediction;
+import v2.joint.Joint;
+import v2.joint.JointFreeFlight;
 
 import jme3Double.Matrix4d;
 import jme3Double.PlaneD;
@@ -22,6 +24,7 @@ public class Forme {
 	//TODOAFTER del this, put it elsewhere
 	public HashMap<Forme, CollisionPrediction> predictions = new HashMap<>(2);
 	public Vector3d positionGravite = Vector3d.ZERO; // center of the gravity field for us.
+	public Joint joint = new JointFreeFlight(this);
 	//constanteGravite = 6.6734 E-11 N*m²/kg²
 	//default constanteGravite: 1g with 100m rayon (note: 1N = 10kg)
 //	public float constanteGraviteMasse = 98100f; //can be updated with our position in space, in N*m²

@@ -14,7 +14,8 @@ public class CollisionPrediction {
 	static enum Precision{
 		INITIAL, // using bbbox
 		REFINED, // using some other tech like ray-tri & tri-tri dist
-		INTEGRATED // integrated & mesh-mesh collision detection
+		INTEGRATED, // integrated & mesh-mesh collision detection
+		CANTFIND // when, well, we can't find the collision, so it may not exist after all.
 	}
 	
 }

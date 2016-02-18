@@ -22,6 +22,10 @@ public class CollisionUpdater {
 
 	TreeMap<Long, CollisionPrediction> collisionDetected = new TreeMap<>();
 
+	
+	//working vars
+	CollisionRayonTri colliderRT = new CollisionRayonTri();
+	
 	// 1 : new turn, redo all collision prediction
 	public void redoCollisionPrediction(long time, long dtms) {
 		// clean
@@ -93,22 +97,24 @@ public class CollisionUpdater {
 					Entry<Long, CollisionPrediction> pred2Check  = it.next();
 					//si la précision des autres m'empeche de me considérer premier
 					if(predEntry.getKey() >= 
-							pred2Check.getKey()-pred2Check.getValue().maxMomentError){
-						toReAdd.put(increaseCollisionPrecision(pred2Check.getValue(), time, dtms),pred2Check.getValue());
+							pred2Check.getKey()-pred2Check.getValue().maxMomentError
+							&& pred2Check.getValue().precisionMoment == Precision.INITIAL){
+						long newTimePred = increaseCollisionPrecision(pred2Check.getValue(), time, dtms);
+						if(pred2Check.getValue().precisionMoment == Precision.CANTFIND) 
+							toReAdd.put(newTimePred,pred2Check.getValue());
 						it.remove();
 					}
 				}
 				collisionDetected.putAll(toReAdd);
 				if(toReAdd.isEmpty()){
 					//si ma précision est le problème
-					collisionDetected.put(increaseCollisionPrecision(predEntry.getValue(), time, dtms), predEntry.getValue());
+					long newTimePred = increaseCollisionPrecision(predEntry.getValue(), time, dtms);
+					if(predEntry.getValue().precisionMoment == Precision.CANTFIND) 
+						collisionDetected.put(newTimePred, predEntry.getValue());
 				}else{
 					collisionDetected.put(predEntry.getKey(), predEntry.getValue());
 				}
-				
 			}
-			
-			
 		}
 	}
 	
@@ -116,13 +122,22 @@ public class CollisionUpdater {
 	public long increaseCollisionPrecision(CollisionPrediction pred, long time, long dtms){
 		if(pred.precisionMoment == Precision.INITIAL){
 			//check with rayons and triangle BB (?)
+			colliderRT.improvePrediction(pred, time, dtms);
 		}else{
-			//integrate
+			//integrate ?
 			//TODO
+			//i think it's costly to integrate each duplet séparément
+			// pourquoi ne pas intégrer toutes els collisions possible en meme temps?
 		}
-		
 		return 0;
 	}
+	
+	//integration:
+	//1, trouver un ensemble de formes qui peuvent etre en collision.
+	//2, intégrer jusqu'a ce qu'une ou des collisions arrive*
+	//3, refaire la dernière intégration moins vite si il a une forme qui a touché plusieurs autres
+	//4, maintenant on peut intégrer les duplet qui ont collidé jusqu'a collision.
+	
 	
 	public void resolveCollisionPrediction(CollisionPrediction pred, long time, long dtms) {
 		
