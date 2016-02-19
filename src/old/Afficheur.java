@@ -278,7 +278,7 @@ public class Afficheur extends JComponent {
 						
 						//update forces & accels vector (sometimes even speed ones)
 						f.joint.updateForce(currentMs, diff);
-						f.joint.updatePosition(currentMs, diff);
+						f.joint.updateVitesse(currentMs, diff);
 						System.out.println("f.joint.update edned "+f +"@"+f.position +" == "+f.joint.f+"@"
 								+f.joint.f.position);
 //						f.update(5*diff/2);

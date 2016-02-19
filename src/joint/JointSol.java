@@ -49,4 +49,10 @@ public class JointSol extends Joint {
 		// NOP
 	}
 
+	@Override
+	public void updateVitesse(long instant, long dt) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

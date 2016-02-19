@@ -12,50 +12,46 @@ public class JointFreeFlight extends Joint {
 	public JointFreeFlight(Forme f) {
 		super(f);
 	}
-
+	
 	@Override
-	public void updatePosition(long instant, long dt) {
-		//all of this is done in collision update
-		// move linear
-//		f.calculF.set(f.vitesse).multLocal(dt);
-//		f.position.addLocal(f.calculF);
-//		f.calculF.set(f.lastAccel).multLocal(dt * dt);
-//		f.position.addLocal(f.calculF);
-//
-//		// move angular
-//		// keep quaternion? => it reduce rounding error
-//		f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
-//		// float angle = f.vangulaire.length();
-//		// if (angle > 0.0) // the formulas from the link
-//		// {
-//		// f.pangulaire.addLocal(new Quaternion(
-//		// f.vangulaire.x * FastMath.sin(angle / 2.0f) / angle,
-//		// f.vangulaire.y * FastMath.sin(angle / 2.0f) / angle,
-//		// f.vangulaire.z * FastMath.sin(angle / 2.0f) / angle,
-//		// FastMath.cos(angle / 2.0f)));
-//		// }
-//		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dt, f.vangulaire);
-//		f.pangulaire.multLocal(quaterAdd);
-//		f.pangulaire.normalizeLocal();
-//
-//		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
-//				f.pangulaire.toRotationMatrix());
-//
-//		// update linear speed
-//		f.calculF.set(f.lastAccel).multLocal(dt * 0.5f);
-//		f.vitesse.addLocal(f.calculF);
-//		f.calculF.set(f.acceleration).multLocal(dt * 0.5f);
-//		f.vitesse.addLocal(f.calculF);
-//
-//		// update angular speed
-//		f.calculF.set(f.lastAangulaire).multLocal(dt * 0.5f);
-//		f.vangulaire.addLocal(f.calculF);
-//		f.calculF.set(f.aangulaire).multLocal(dt * 0.5f);
-//		f.vangulaire.addLocal(f.calculF);
-//
-//		// update accel
-//		f.lastAccel.set(f.acceleration);
-//		f.lastAangulaire.set(f.aangulaire);
+	public void updateVitesse(long instant, long dtms) {
+		float dts = dtms*0.001f;
+
+		// update linear speed
+		f.calculF.set(f.lastAccel).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calculF);
+		f.calculF.set(f.acceleration).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calculF);
+		System.out.println(f.name+"JFF now speed = " + f.vitesse+" from accel "+f.acceleration+" and lastaccel="+f.lastAccel);
+
+		// update angular speed
+		f.calculF.set(f.lastAangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calculF);
+		f.calculF.set(f.aangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calculF);
+		System.out.println(f.name+"JFF now aspeed = " + f.vangulaire+" from aAcel="+f.aangulaire+" & "+f.lastAangulaire);
+	}
+	
+	@Override
+	public void updatePosition(long instant, long dtms) {
+		float dts = dtms*0.001f;
+
+		// update linear position
+		f.calculF.set(f.vitesse).multLocal(dts);
+		f.position.addLocal(f.calculF);
+		System.out.println(f.name+"JFF now pos = " + f.vitesse);
+
+		// update angular position
+		f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
+		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
+		f.pangulaire.multLocal(quaterAdd);
+		f.pangulaire.normalizeLocal();
+		System.out.println(f.name+"JFF now apos = " + f.vangulaire);
+		
+
+		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
+				f.pangulaire.toRotationMatrix());
+		
 	}
 
 	@Override
@@ -152,7 +148,12 @@ public class JointFreeFlight extends Joint {
 		//check diff
 		Vector3f worldPos = new Vector3f();
 		f.transfoMatrix.mult(f.points.get(pointIdx), worldPos);
-		System.out.println("  worldPos="+worldPos+" to pointObj="+pointObj);
+		
+		//PROBLEME: si exactement superposé, on ne sais plus trop de quel coté est cahque objet.
+		// SOLUTION: utiliser la normale du point pour désambuguiser ou s'arreter juste avant.
+		worldPos.addLocal(f.normales.get(pointIdx).mult(0.000001f)); //TODO verifier
+		
+		System.out.println("JFF p->p   worldPos="+worldPos+" to pointObj="+pointObj);
 		f.position.addLocal(new Vector3d(pointObj.subtract(worldPos)));
 		f.transfoMatrix.setTranslation(f.position.toVec3f());
 	}
@@ -166,7 +167,12 @@ public class JointFreeFlight extends Joint {
 		Vector3f worldPos = new Vector3f();
 		f.transfoMatrix.mult(f.points.get(pointIdx), worldPos);
 		Vector3f pointObj = planeObj.getClosestPoint(worldPos);
-		System.out.println("  worldPos="+worldPos+" to pointObj="+pointObj);
+		
+		//PROBLEME: si exactement superposé, on ne sais plus trop de quel coté est cahque objet.
+		// SOLUTION: utiliser la normale du point pour désambuguiser ou s'arreter juste avant.
+		worldPos.addLocal(planeObj.getNormal().mult(0.00001f));
+
+		System.out.println("JFF p->plane  worldPos="+worldPos+" to pointObj="+pointObj+", normale:"+planeObj.getNormal());
 		f.position.addLocal(new Vector3d(pointObj.subtract(worldPos)));
 		f.transfoMatrix.setTranslation(f.position.toVec3f());
 	}
@@ -179,7 +185,12 @@ public class JointFreeFlight extends Joint {
 		Vector3f tempC = f.transfoMatrix.mult(localTC, new Vector3f());
 		p.setPlanePoints(tempA, tempB, tempC);
 		Vector3f worldPos =p.getClosestPoint(worldObj);
-		System.out.println("  worldPos="+worldPos+" to pointObj="+worldObj);
+		
+		//PROBLEME: si exactement superposé, on ne sais plus trop de quel coté est cahque objet.
+		// SOLUTION: utiliser la normale du point pour désambuguiser ou s'arreter juste avant.
+		worldPos.addLocal(p.getNormal().mult(0.00001f)); // bon sens... tout le temps?
+		
+		System.out.println("JFF tri->p   worldPos="+worldPos+" to pointObj="+worldObj);
 		f.position.addLocal(new Vector3d(worldObj.subtract(worldPos)));
 		f.transfoMatrix.setTranslation(f.position.toVec3f());
 		

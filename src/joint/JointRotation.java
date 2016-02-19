@@ -59,9 +59,20 @@ public abstract class JointRotation extends Joint {
 	
 
 	@Override
-	public void updatePosition(long instant, long dtms) {
-		System.out.println("forme UpdatePos "+f +"@"+f.position);
+	public void updateVitesse(long instant, long dtms) {
 		float dts = dtms*0.001f;
+
+
+		// update angular speed
+		f.calculF.set(f.lastAangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calculF);
+		f.calculF.set(f.aangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calculF);
+		System.out.println(f.name+" JR now aspeed = " + f.vangulaire+" from aAcel="+f.aangulaire+" & "+f.lastAangulaire);
+		
+
+		System.out.println("forme UpdatePos "+f +"@"+f.position);
+		
 		//set linear vit from vang
 		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
 		System.out.println("JointRotation vangulaire : "+f.vangulaire);
@@ -86,19 +97,49 @@ public abstract class JointRotation extends Joint {
 		//f.transfoMatrix.translateVect(newRot.toTranslationVector());
 //		System.out.println("previousPs: "+f.position);
 		Vector3f newSpeed = newRot.toTranslationVector();
-		
 
 		//vitesse lineaire, pour garder le centre de rotation à peu près où il faut.
 		f.vitesse.set(newSpeed.mult(1)); ///???? *10?
 		System.out.println("JointRotation : speed now "+f.vitesse+" on "+f);
 		System.out.println("JointRotation : speed displacement this turn "+f.vitesse.mult(dts).length());
-		System.out.println("forme End UpdatePos "+f +"@"+f.position);
+		System.out.println("JR forme End UpdatePos "+f +"@"+f.position);
+		
+
+		// update linear speed (utile pour le décollage, en principe, l'acceleration lineaire est nulle)
+		f.calculF.set(f.lastAccel).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calculF);
+		f.calculF.set(f.acceleration).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calculF);
+		System.out.println(f.name+" JR now speed = " + f.vitesse);
+		
+	}
+
+	@Override
+	public void updatePosition(long instant, long dtms) {
+		float dts = dtms*0.001f;
+
+		// update linear position
+		f.calculF.set(f.vitesse).multLocal(dts);
+		f.position.addLocal(f.calculF);
+		System.out.println(f.name+" JR now pos = " + f.position);
+
+		// update angular position
+		f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
+		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
+		f.pangulaire.multLocal(quaterAdd);
+		f.pangulaire.normalizeLocal();
+		System.out.println(f.name+" JR now apos = " + f.pangulaire);
+		
+
+		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
+				f.pangulaire.toRotationMatrix());
+		
 	}
 	
 	//TODO: allow to return "can't collide"
 	//TODO: refactor the nbIter / bestDist to end when we are not going any better => revert and return false
 //	Vector3f lastPos = new Vector3f();
-	@Override
+//	@Override
 	public void gotoCollision(int pointIdx, Plane planeObj) {
 		
 		//TODO: new algo
@@ -111,20 +152,97 @@ public abstract class JointRotation extends Joint {
 
 		System.out.println("JR gotoCollision "+pointIdx+" => "+planeObj);
 		//get world pos
-		Vector3f WP = new Vector3f();
+		Vector3f WP = new Vector3f(); 
 		Vector3f LP = f.points.get(pointIdx);
 		f.transfoMatrix.mult(LP, WP);
+		System.out.println("JR WP="+WP+ ", LP="+LP);
 		
 		Vector3f WR = pointWRotation;
 		Vector3f LR = pointLRotation; //f.transfoMatrix.invert().mult(pointWRotation);
-		
-//		Vector3f WT = 
+		System.out.println("JR WR="+WR+ ", LR="+LR);
+		System.out.println("JR f.vangulaire"+f.vangulaire+ ", f.aangulaire="+f.aangulaire);
+
+		// check the projection (T) of point (WP) in the axe of rotation.
 		Plane planNormalWT2WP = new Plane();
+		planNormalWT2WP.setOriginNormal(WR, 
+				WR.subtract(WP).crossLocal(f.vangulaire).crossLocal(f.vangulaire).normalizeLocal()); //FIXME order
+		Vector3f WT = planNormalWT2WP.getClosestPoint(WP);
+		System.out.println("JR planNormalWT2WP="+planNormalWT2WP.getNormal());
+		System.out.println("JR WT="+WT);
 		
-				
+//		Plane planNormalRot = new Plane();
+//		planNormalRot.setOriginNormal(WT, f.vangulaire);
+
+		// get the ray, intersection of planeObj with the plane defined by vect vangulaire at point T
+//		Vector3f dirIntersectPlane = planNormalWT2WP.getNormal().cross((f.vangulaire)); //FIXME cross order
+//		Vector3f dirIntersectPlane = f.vangulaire.cross(planNormalWT2WP.getNormal()).normalizeLocal();
+		Vector3f dirLineWithWHetWL = f.vangulaire.cross(planeObj.getNormal()).normalizeLocal();
+		System.out.println("JR dirIntersectPlane="+dirLineWithWHetWL);
 		
+		//find the projection (H) of T in the ray
+		// for that, first get the projection (G) of T on the plane planeObj
+		Vector3f WG = planeObj.getClosestPoint(WT);
+		Vector3f tempV = WG.subtract(WT).crossLocal(planeObj.getNormal()).crossLocal(planeObj.getNormal()).normalizeLocal();
+		Vector3f WH = WG.add(tempV.mult(tempV.dot(WG.subtract(WT))));
+//		System.out.println("JR tempV="+tempV);  
+		System.out.println("JR WG="+WG+" dist from plane: "+planeObj.pseudoDistance(WG));  
+		System.out.println("JR WH"+WH+" dist from plane: "+planeObj.pseudoDistance(WH));
 		
+
+		// find the point (L) in the ray where |PT| = |LT| 
+//		Vector3f WL = dirIntersectPlane.normalize().multLocal(WT.distance(WP)).addLocal(WT);
+		float distTP = WT.distance(WP);
+		float distTH = WT.distance(WH);
+		System.out.println("JR distTP="+distTP);
+		System.out.println("JR distTH="+distTH);
+//		System.out.println("JR FastMath.sqrt(distTP*distTP - distTH*distTH)="+FastMath.sqrt(distTP*distTP - distTH*distTH));
+		Vector3f WL = WH.add(dirLineWithWHetWL.mult(FastMath.sqrt(distTP*distTP - distTH*distTH)));
+		System.out.println("JR WL="+WL+" dist from plane: "+planeObj.pseudoDistance(WL));
+		
+		//PROBLEME: si exactement superposé, on ne sais plus trop de quel coté est cahque objet.
+		// SOLUTION: utiliser la normale du point pour désambuguiser ou s'arreter juste avant.
+		WL.addLocal(planeObj.getNormal().mult(0.00001f));
+
+		// compute the rotation to move P at L
+		System.out.println("WL.distance(WP)="+WL.distance(WP)+", WT.distance(WP)="+WT.distance(WP));
+		double angle = 2*Math.asin(WL.distance(WP)*0.5/WT.distance(WP));
+		System.out.println("angle="+angle);
+		
+
+		// do the rotation
+		{
+			double rotDts = angle/f.vangulaire.length();
+			
+			//linear
+			f.calcul1.set(f.vitesse).multLocal(rotDts);
+			f.position.addLocal(f.calculF);
+			System.out.println("MOVE : " + f.calcul1 + " on "+f.position + " => "+f.position.add(f.calcul1));
+			//angular
+			Quaterniond quaterAdd = new Quaterniond().fromAngleAxis(f.vangulaire.length() * rotDts, new Vector3d(f.vangulaire));
+			Quaterniond quaterPos = new Quaterniond(f.pangulaire);
+			System.out.println("ROTATE : " + f.vangulaire.mult((float)rotDts)+" on "+quaterPos+" => "+quaterPos.mult(quaterAdd));
+			quaterPos.multLocal(quaterAdd);
+			quaterPos.normalizeLocal();
+			f.pangulaire.set((float)quaterPos.x, (float)quaterPos.y, (float)quaterPos.z, (float)quaterPos.w);
+			
+			//matrix
+			f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3f.UNIT_XYZ,
+				f.pangulaire.toRotationMatrix());
+			//recalage : keep le centre de rotation FIXE a tout prix
+			f.position.addLocal(pointWRotation.subtract(f.transfoMatrix.mult(LR)));
+			f.transfoMatrix.setTranslation(f.position.toVec3fLocal(f.calculF));
+		}
+		Vector3f newPoint = f.transfoMatrix.mult(LP);
+		System.out.println("NewPosP (=WL) : "+newPoint+" dist from plane: "+planeObj.pseudoDistance(newPoint));
+		System.out.println("TP="+WT.distance(WP)+", TL="+WT.distance(WL)
+				+", TLn="+WT.distance(newPoint)+", LLn="+WL.distance(newPoint));
+		tempV.set(WL).addLocal(WP).multLocal(0.5f);
+		System.out.println("angle computed: "+Math.cos(tempV.length()/WT.distance(WL))*2);
+		System.out.println("angle real: "+Math.cos(tempV.length()/WT.distance(newPoint))*2);
+		
+		//TODO: validate rotation & correct if in negative side.
 	}
+	
 	public void gotoCollisionOld(int pointIdx, Plane planeObj) {
 		System.out.println("gotoCollision "+pointIdx+" => "+planeObj);
 		//get world pos
@@ -135,6 +253,8 @@ public abstract class JointRotation extends Joint {
 		Vector3f WR = pointWRotation;
 		Vector3f LR = pointLRotation; //f.transfoMatrix.invert().mult(pointWRotation);
 
+		System.out.println("WP="+WP+ ", LP="+LP);
+		System.out.println("f.transfoMatrix="+f.transfoMatrix);
 		
 
 		System.out.println("BeforeRecalage : " + pointWRotation + ".distance("

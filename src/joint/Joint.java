@@ -24,12 +24,16 @@ public abstract class Joint {
 //		updatePosition(instant, dt);
 //		System.out.println("update joint ended for forme "+f+"@"+f.position);
 //	}
-
-	//update rot&linear speed&position
-	public abstract void updatePosition(long instant, long dt);
 	
 	// cehck all forces, tranfert them to others formes, change angular&linear accel
 	public abstract void updateForce(long instant, long dt);
+
+	//update rot&linear speed
+	public abstract void updateVitesse(long instant, long dt);
+
+	//update rot&linear position
+	public abstract void updatePosition(long instant, long dt);
+	
 
 	// force = masse * acceleration
 	// energiecinétique = 0.5*mv² 
