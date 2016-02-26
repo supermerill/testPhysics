@@ -233,15 +233,15 @@ public class Afficheur extends JComponent {
 					}
 					if(view.keyPress.contains(KeyEvent.VK_E)){
 						maForme.forces.add(new Vector3f(0,20,0));
-						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(-100, -20, 0)));
+						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(-100, 0, 0)));
 						maForme.physicUpdate = true;
-						System.out.println("add force "+new Vector3f(0,20,0)+" @"+new Vector3f(-100, -20, 0));
+						System.out.println("add force "+new Vector3f(0,20,0)+" @"+new Vector3f(-100, 0, 0));
 					}
 					if(view.keyPress.contains(KeyEvent.VK_R)){
 						maForme.forces.add(new Vector3f(0,20,0));
-						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(100, -20, 0)));
+						maForme.pointApplicationForce.add(maForme.transfoMatrix.mult(new Vector3f(100, 0, 0)));
 						maForme.physicUpdate = true;
-						System.out.println("add force "+new Vector3f(0,20,0)+" @"+new Vector3f(100, -20, 0));
+						System.out.println("add force "+new Vector3f(0,20,0)+" @"+new Vector3f(100, 0, 0));
 					}
 //					for(Forme f : view.formes){
 ////						while(f.forces.size()>1){
