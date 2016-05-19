@@ -1,6 +1,11 @@
 package v2.joint;
 
 import v2.Forme;
+
+import com.jme3.math.Matrix4f;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
+
 import jme3Double.Matrix4d;
 import jme3Double.PlaneD;
 import jme3Double.Quaterniond;
@@ -17,46 +22,21 @@ public abstract class JointRotation extends Joint {
 		super(f);
 	}
 	
-//	public static Vector3d getLinearFromRotation(Vector3d angular, Vector3d origin, Vector3d point, long dtms){
-//		float dts = dtms*0.001f;
-//		//set linear vit from vang
-//		Quaternion quaterAdd = new Quaternion().fromAngleAxis(angular.length() * dts, angular);
-//		
-//		Matrix4f newRot = new Matrix4f();
-//		newRot.setTransform(Vector3d.ZERO, Vector3d.UNIT_XYZ, quaterAdd.toRotationMatrix());
-//		
-//		Matrix4f preciseTrsf = new Matrix4f();
-//		preciseTrsf.setTransform(rotationP, Vector3d.UNIT_XYZ, f.pangulaire.toRotationMatrix());
-//		
-//		Vector3d transl = new Vector3d(f.transfoMatrix.invert().mult(pointWRotation)).mult(1);
-////		new Matrix4d(f.transfoMatrix).multNormal(transl, transl);
-//		preciseTrsf.multNormal(transl, transl);
-//		newRot.m03 = transl.x - newRot.m00 * transl.x - newRot.m01 * transl.y - newRot.m02
-//				* transl.z;
-//		newRot.m13 = transl.y - newRot.m10 * transl.x - newRot.m11 * transl.y - newRot.m12
-//				* transl.z;
-//		newRot.m23 = transl.z - newRot.m20 * transl.x - newRot.m21 * transl.y - newRot.m22
-//				* transl.z;
-//		System.out.println("JointRotation Translation : "+newRot.toTranslationVector());
-//		
-//		//f.transfoMatrix.translateVect(newRot.toTranslationVector());
-////		System.out.println("previousPs: "+f.position);
-//		Vector3d newSpeed = newRot.toTranslationVector();
-//		
-//
-//		//vitesse lineaire, pour garder le centre de rotation à peu près où il faut.
-//		f.vitesse.set(newSpeed.mult(1)); ///???? *10?
-//
-//		
-//		
-//		return null;
-//	}
-	
-
 	@Override
-	public void updatePosition(long instant, long dtms) {
-		System.out.println("forme UpdatePos "+f +"@"+f.position);
+	public void updateVitesse(long instant, long dtms) {
 		float dts = dtms*0.001f;
+
+
+		// update angular speed
+		f.calcul1.set(f.lastAangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calcul1);
+		f.calcul1.set(f.aangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calcul1);
+		System.out.println(f.name+" JR now aspeed = " + f.vangulaire+" from aAcel="+f.aangulaire+" & "+f.lastAangulaire);
+		
+
+		System.out.println("forme UpdatePos "+f +"@"+f.position);
+		
 		//set linear vit from vang
 		Quaterniond quaterAdd = new Quaterniond().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
 		System.out.println("JointRotation vangulaire : "+f.vangulaire);
@@ -81,14 +61,83 @@ public abstract class JointRotation extends Joint {
 		//f.transfoMatrix.translateVect(newRot.toTranslationVector());
 //		System.out.println("previousPs: "+f.position);
 		Vector3d newSpeed = newRot.toTranslationVector();
-		
 
 		//vitesse lineaire, pour garder le centre de rotation à peu près où il faut.
 		f.vitesse.set(newSpeed.mult(1)); ///???? *10?
 		System.out.println("JointRotation : speed now "+f.vitesse+" on "+f);
 		System.out.println("JointRotation : speed displacement this turn "+f.vitesse.mult(dts).length());
-		System.out.println("forme End UpdatePos "+f +"@"+f.position);
+		System.out.println("JR forme End UpdatePos "+f +"@"+f.position);
+		
+
+		// update linear speed (utile pour le décollage, en principe, l'acceleration lineaire est nulle)
+		f.calcul1.set(f.lastAccel).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calcul1);
+		f.calcul1.set(f.acceleration).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calcul1);
+		System.out.println(f.name+" JR now speed = " + f.vitesse);
+		
 	}
+
+	@Override
+	public void updatePosition(long instant, long dtms) {
+		float dts = dtms*0.001f;
+
+		// update linear position
+		f.calcul1.set(f.vitesse).multLocal(dts);
+		f.position.addLocal(f.calcul1);
+		System.out.println(f.name+" JR now pos = " + f.position);
+
+		// update angular position
+		f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
+		Quaterniond quaterAdd = new Quaterniond().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
+		f.pangulaire.multLocal(quaterAdd);
+		f.pangulaire.normalizeLocal();
+		System.out.println(f.name+" JR now apos = " + f.pangulaire);
+		
+
+		f.transfoMatrix.setTransform(f.position, Vector3d.UNIT_XYZ,
+				f.pangulaire.toRotationMatrix());
+
+		f.time = instant;
+	}
+	
+
+//	@Override
+//	public void updatePosition(long instant, long dtms) {
+//		System.out.println("forme UpdatePos "+f +"@"+f.position);
+//		float dts = dtms*0.001f;
+//		//set linear vit from vang
+//		Quaterniond quaterAdd = new Quaterniond().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
+//		System.out.println("JointRotation vangulaire : "+f.vangulaire);
+//		
+//		Matrix4d newRot = new Matrix4d();
+//		newRot.setTransform(Vector3d.ZERO, Vector3d.UNIT_XYZ, quaterAdd.toRotationMatrix());
+//		
+//		Matrix4d preciseTrsf = new Matrix4d();
+//		preciseTrsf.setTransform(f.position, Vector3d.UNIT_XYZ, f.pangulaire.toRotationMatrix());
+//		
+//		Vector3d transl = new Vector3d(f.transfoMatrix.invert().mult(pointWRotation)).mult(1);
+////		new Matrix4d(f.transfoMatrix).multNormal(transl, transl);
+//		preciseTrsf.multNormal(transl, transl);
+//		newRot.m03 = transl.x - newRot.m00 * transl.x - newRot.m01 * transl.y - newRot.m02
+//				* transl.z;
+//		newRot.m13 = transl.y - newRot.m10 * transl.x - newRot.m11 * transl.y - newRot.m12
+//				* transl.z;
+//		newRot.m23 = transl.z - newRot.m20 * transl.x - newRot.m21 * transl.y - newRot.m22
+//				* transl.z;
+//		System.out.println("JointRotation Translation : "+newRot.toTranslationVector());
+//		
+//		//f.transfoMatrix.translateVect(newRot.toTranslationVector());
+////		System.out.println("previousPs: "+f.position);
+//		Vector3d newSpeed = newRot.toTranslationVector();
+//		
+//
+//		//vitesse lineaire, pour garder le centre de rotation à peu près où il faut.
+//		f.vitesse.set(newSpeed.mult(1)); ///???? *10?
+//		System.out.println("JointRotation : speed now "+f.vitesse+" on "+f);
+//		System.out.println("JointRotation : speed displacement this turn "+f.vitesse.mult(dts).length());
+//		System.out.println("forme End UpdatePos "+f +"@"+f.position);
+//	}
 	
 	//TODO: allow to return "can't collide"
 	//TODO: refactor the nbIter / bestDist to end when we are not going any better => revert and return false

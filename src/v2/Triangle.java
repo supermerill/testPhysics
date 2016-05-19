@@ -14,6 +14,14 @@ public class Triangle {
 		bbRound = Math.max(Math.max(ij, jk), ki);
 		center = f.points.get(i).add(f.points.get(j)).addLocal(f.points.get(k)).divideLocal(3);
 	}
+	
+
+	//do not use it, it's a trash one for CollisionUpdater
+	public Triangle(int i, int j, int k) {
+		a = i;
+		b = j;
+		c = k;
+	}
 
 	public int a, b, c;
 	public double bbRound; // roundbounding box

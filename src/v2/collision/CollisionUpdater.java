@@ -17,10 +17,10 @@ import v2.collision.CollisionPrediction.Precision;
 public class CollisionUpdater {
 
 	// TreeMap<Long, Forme> movingObjects = new TreeMap<>();
-	Collection<Forme> movingObjects = new HashSet<>();
-	Collection<Forme> allObjects = new ArrayList<>();
+	public Collection<Forme> movingObjects = new HashSet<>();
+	public Collection<Forme> allObjects = new ArrayList<>();
 
-	TreeMap<Long, CollisionPrediction> collisionDetected = new TreeMap<>();
+	public TreeMap<Long, CollisionPrediction> collisionDetected = new TreeMap<>();
 
 	
 	//working vars
@@ -42,8 +42,10 @@ public class CollisionUpdater {
 					if (f1 == f2)
 						continue;
 					// first lazy check (TODOAFTER: check if it's really useful)
-					long timeCollide = canCollide(f1, f1.time, dtms + time - f1.time, f2, f2.time, dtms + time
+					System.out.println("redocollpred: dtms="+dtms+" , dtmsf1="+(time - f1.time)+", time="+time+", time f1="+f1.time);
+					long timeCollide = canCollide(f1, f1.time, time - f1.time, f2, f2.time, time
 							- f2.time);
+					System.out.println("redocollpred: tiemCollide="+timeCollide+" => "+(timeCollide-time));
 					if (timeCollide > 0) {
 
 						System.out.println("possible collision " + f1.predictions.get(f2));
@@ -88,6 +90,19 @@ public class CollisionUpdater {
 			
 			//if first, then we can resolve this collision
 			if(first){
+				//if it's too late, nothing to resolve, really.
+				System.out.println("RESOLVEALL:  before "+predEntry.getKey()+">"+time);
+				long newTimePred = predEntry.getKey();
+				if(predEntry.getValue().precisionMoment == Precision.INITIAL){
+					System.out.println("RESOLVEALL: increase rpecision first ");
+					newTimePred = increaseCollisionPrecision(predEntry.getValue(), time, dtms);
+						
+				}
+				System.out.println("RESOLVEALL:  after "+newTimePred+">"+time);
+				if(newTimePred > time){ 
+					System.out.println("RESOLVEALL: too late:"+newTimePred+">"+time);
+					return;
+				}
 				resolveCollisionPrediction(predEntry.getValue(), time, dtms);
 			}else{
 				//sinon, il faut améliorer la précision des différentes collisions
@@ -129,7 +144,8 @@ public class CollisionUpdater {
 			//i think it's costly to integrate each duplet séparément
 			// pourquoi ne pas intégrer toutes els collisions possible en meme temps?
 		}
-		return 0;
+		System.out.println("precision increased, new omment is: "+pred.moment);
+		return pred.moment;
 	}
 	
 	//integration:
@@ -141,7 +157,22 @@ public class CollisionUpdater {
 	
 	public void resolveCollisionPrediction(CollisionPrediction pred, long time, long dtms) {
 		
+		//TODO resolve collision
+		System.out.println("TODO: resolve collision ");
+		//, put the timestamp of the objects to the "good" timestamp
+		// do not forget to run a "update force" for the time before the collision
+		//, the other one for the time after the collision will be done by the "updater" pipeline like any other objects
 		
+		
+		//go to pred.moment? risky? perhaps 2/3 before? or adjusted by velocity (faster=> more integration)?
+		System.out.println("RESOLVE: f1 "+pred.forme1+" move "+(pred.moment-pred.forme1.time)+" from "+pred.forme1.time+" to "+pred.moment);
+		pred.forme1.joint.updatePosition(0, pred.moment-pred.forme1.time);
+		pred.forme1.time = pred.moment;
+		System.out.println("RESOLVE: f2 "+pred.forme2+" move "+(pred.moment-pred.forme2.time)+" from "+pred.forme2.time+" to "+pred.moment);
+		pred.forme2.joint.updatePosition(0, pred.moment-pred.forme2.time);
+		pred.forme2.time = pred.moment;
+		
+		//check if it's not too far
 		
 	}
 	
@@ -171,6 +202,7 @@ public class CollisionUpdater {
 				// sufficient.
 				// TODOAFTER if i keep that, i can pre-check mesh-segment
 				// segment-mesh.
+				///or even using the far-distance mesh
 				if (colideMesh(f1.getMeshBB(timef1, dtmsf1), f2.getMeshBB(timef2, dtmsf2))) {
 					System.out.println("possible collision (mesh cylinder) " + f1 + " with " + f2);
 
@@ -188,18 +220,18 @@ public class CollisionUpdater {
 
 	public static final Triangle[] trianglesMeshColl = new Triangle[12];
 	static {
-		trianglesMeshColl[0] = new Triangle(null, 0, 1, 2);
-		trianglesMeshColl[1] = new Triangle(null, 0, 2, 3);
-		trianglesMeshColl[2] = new Triangle(null, 4, 5, 6);
-		trianglesMeshColl[3] = new Triangle(null, 4, 6, 7);
-		trianglesMeshColl[4] = new Triangle(null, 0, 1, 5);
-		trianglesMeshColl[5] = new Triangle(null, 0, 5, 4);
-		trianglesMeshColl[6] = new Triangle(null, 1, 2, 6);
-		trianglesMeshColl[7] = new Triangle(null, 1, 6, 5);
-		trianglesMeshColl[8] = new Triangle(null, 2, 3, 7);
-		trianglesMeshColl[9] = new Triangle(null, 2, 7, 6);
-		trianglesMeshColl[10] = new Triangle(null, 3, 0, 4);
-		trianglesMeshColl[11] = new Triangle(null, 3, 4, 7);
+		trianglesMeshColl[0] = new Triangle(0, 1, 2);
+		trianglesMeshColl[1] = new Triangle(0, 2, 3);
+		trianglesMeshColl[2] = new Triangle(4, 5, 6);
+		trianglesMeshColl[3] = new Triangle(4, 6, 7);
+		trianglesMeshColl[4] = new Triangle(0, 1, 5);
+		trianglesMeshColl[5] = new Triangle(0, 5, 4);
+		trianglesMeshColl[6] = new Triangle(1, 2, 6);
+		trianglesMeshColl[7] = new Triangle(1, 6, 5);
+		trianglesMeshColl[8] = new Triangle(2, 3, 7);
+		trianglesMeshColl[9] = new Triangle(2, 7, 6);
+		trianglesMeshColl[10] = new Triangle(3, 0, 4);
+		trianglesMeshColl[11] = new Triangle(3, 4, 7);
 	}
 
 	static boolean colideMesh(Vector3d[] verticesF1, Vector3d[] verticesF2) {

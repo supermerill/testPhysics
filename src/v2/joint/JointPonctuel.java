@@ -57,7 +57,8 @@ public class JointPonctuel extends JointRotation {
 		System.out.println("AfterRecalage : " + pointWRotation + ".distance("
 				+ f.transfoMatrix.mult(f.points.get(idxPoint)) 
 				+ ") ="+pointWRotation.distance(f.transfoMatrix.mult(new Vector3d(f.points.get(idxPoint)))));
-		
+
+		f.time = instant;
 	}
 
 	@Override

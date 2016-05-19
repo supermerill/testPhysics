@@ -973,7 +973,7 @@ public class CollisionUpdater {
 			// it collide!
 			System.out.println("==================COLLIDE============================");
 
-			// TODO: rotate a small amount to integrate the roation a bit
+			// TODO: rotate a small amount to integrate the rotation a bit
 			// further
 			// but do it in update position, not here
 

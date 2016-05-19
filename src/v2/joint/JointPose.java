@@ -45,7 +45,7 @@ public class JointPose extends JointRotation {
 	}
 
 	@Override
-	public void updatePosition(long instant, long dt) {
+	public void updatePosition(long instant, long dtms) {
 		// // move forme to rot pos
 		// // MAYTODO: find a better way with rot mat
 		// // TODOAFTER: cleanup this : you just need to set angular accel (done
@@ -151,7 +151,7 @@ public class JointPose extends JointRotation {
 				+ ") ="+points.get(idxR).distance(f.transfoMatrix.mult(f.points.get(pointsIdx.get(idxR))))+" > 0.0001");
 		
 		System.out.println("POSE JOINT updatepos call super UpdatePos "+f +"@"+f.position);
-		super.updatePosition(instant, dt);
+		super.updatePosition(instant, dtms);
 		System.out.println("POSE JOINT updatepos end call super UpdatePos "+f +"@"+f.position);
 
 
@@ -245,7 +245,7 @@ public class JointPose extends JointRotation {
 	}
 
 	@Override
-	public void updateForce(long instant, long dt) {
+	public void updateForce(long instant, long dtms) {
 		System.out.println("JP POSE JOINT updateForce UpdatePos "+f +"@"+f.position);
 
 		if ((needToRecompute || f.physicUpdate) && !f.landed) {
@@ -258,7 +258,7 @@ public class JointPose extends JointRotation {
 				// updateForceMax2(instant, dt);
 			} else if (this.points.size() > 1) {
 				System.out.println("JP Compute new things");
-				updateForceNoMax(instant, dt);
+				updateForceNoMax(instant, dtms);
 			} else {
 				System.err.println("Error, " + points.size() + " points in jointpose!");
 			}
@@ -277,7 +277,7 @@ public class JointPose extends JointRotation {
 		System.out.println("POSE JOINT updateforce end UpdatePos "+f +"@"+f.position);
 	}
 
-	public void updateForceNoMax(long instant, long dt) {
+	public void updateForceNoMax(long instant, long dtms) {
 		Vector3d fPos = f.position;
 		
 

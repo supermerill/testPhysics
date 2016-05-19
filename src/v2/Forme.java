@@ -29,7 +29,8 @@ public class Forme {
 	//default constanteGravite: 1g with 100m rayon (note: 1N = 10kg)
 //	public float constanteGraviteMasse = 98100f; //can be updated with our position in space, in N*m²
 //	public float constanteGraviteMasse = 0.0981f; //can be updated with our position in space, in N*km²
-	public double constanteGraviteMasse = 98100000000f; //can be updated with our position in space, in N*mm²
+//	public double constanteGraviteMasse = 98100000000f; //can be updated with our position in space, in N*mm²
+	public double constanteGraviteMasse = 98100f; //can be updated with our position in space, in N*m²
 //	public float constanteGraviteStd = 98100f;//398000f; //can be updated with our position in space, in m3/s²
 	public ArrayList<Vector3d> forces = new ArrayList<>(); //en N
 	public ArrayList<Vector3d> pointApplicationForce = new ArrayList<>(); //world repere
@@ -65,18 +66,29 @@ public class Forme {
 	//it's always 0,0,0 !
 	//Vector3d gravityCenter = new Vector3d(0,0,0); // en mm
 	
-	public long time; //en ms
-	//par rapport au centre de gravite
-	public Vector3d position = new Vector3d(); // en mm
-	public Vector3d vitesse = new Vector3d(); // en mm/ms
-	public Vector3d acceleration = new Vector3d(); //en mm/ms*ms
-	public Vector3d lastAccel = new Vector3d(); //en mm/ms*ms
+	public long time; //en ms, current timestamp for this object properties
+//	//par rapport au centre de gravite
+//	public Vector3d position = new Vector3d(); // en mm
+//	public Vector3d vitesse = new Vector3d(); // en mm/ms
+//	public Vector3d acceleration = new Vector3d(); //en mm/ms*ms
+//	public Vector3d lastAccel = new Vector3d(); //en mm/ms*ms
+//
+////	public Vector3f posAxeRot = new Vector3f(0,0,0); //en mm, local?
+//	public Quaterniond pangulaire = new Quaterniond(Quaterniond.IDENTITY); //en rad
+//	public Vector3d vangulaire = new Vector3d(); //en rad/ms
+//	public Vector3d aangulaire = new Vector3d(); //en rad/ms*ms
+//	public Vector3d lastAangulaire = new Vector3d(); //en rad/ms*ms
+	public Vector3d position = new Vector3d(); // en m
+	public Vector3d vitesse = new Vector3d(); // en m/s
+	public Vector3d acceleration = new Vector3d(); //en m/s*s
+	public Vector3d lastAccel = new Vector3d(); //en m/s*s
 
-//	public Vector3f posAxeRot = new Vector3f(0,0,0); //en mm, local?
+//	public Vector3f posAxeRot = new Vector3f(0,0,0); //en m, local?
 	public Quaterniond pangulaire = new Quaterniond(Quaterniond.IDENTITY); //en rad
-	public Vector3d vangulaire = new Vector3d(); //en rad/ms
-	public Vector3d aangulaire = new Vector3d(); //en rad/ms*ms
-	public Vector3d lastAangulaire = new Vector3d(); //en rad/ms*ms
+	public Vector3d vangulaire = new Vector3d(); //en rad/s
+	public Vector3d aangulaire = new Vector3d(); //en rad/s*s
+	public Vector3d lastAangulaire = new Vector3d(); //en rad/s*s
+
 
 	public Matrix4d transfoMatrix = new Matrix4d();
 	

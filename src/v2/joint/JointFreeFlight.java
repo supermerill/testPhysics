@@ -1,7 +1,12 @@
 package v2.joint;
 
 import v2.Forme;
+
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
+
 import jme3Double.PlaneD;
+import jme3Double.Quaterniond;
 import jme3Double.Vector3d;
 
 
@@ -12,48 +17,45 @@ public class JointFreeFlight extends Joint {
 	}
 
 	@Override
-	public void updatePosition(long instant, long dt) {
-		//all of this is done in collision update
-		// move linear
-//		f.calculF.set(f.vitesse).multLocal(dt);
-//		f.position.addLocal(f.calculF);
-//		f.calculF.set(f.lastAccel).multLocal(dt * dt);
-//		f.position.addLocal(f.calculF);
-//
-//		// move angular
-//		// keep quaternion? => it reduce rounding error
-//		f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
-//		// float angle = f.vangulaire.length();
-//		// if (angle > 0.0) // the formulas from the link
-//		// {
-//		// f.pangulaire.addLocal(new Quaternion(
-//		// f.vangulaire.x * FastMath.sin(angle / 2.0f) / angle,
-//		// f.vangulaire.y * FastMath.sin(angle / 2.0f) / angle,
-//		// f.vangulaire.z * FastMath.sin(angle / 2.0f) / angle,
-//		// FastMath.cos(angle / 2.0f)));
-//		// }
-//		Quaternion quaterAdd = new Quaternion().fromAngleAxis(f.vangulaire.length() * dt, f.vangulaire);
-//		f.pangulaire.multLocal(quaterAdd);
-//		f.pangulaire.normalizeLocal();
-//
-//		f.transfoMatrix.setTransform(f.position.toVec3fLocal(f.calculF), Vector3d.UNIT_XYZ,
-//				f.pangulaire.toRotationMatrix());
-//
-//		// update linear speed
-//		f.calculF.set(f.lastAccel).multLocal(dt * 0.5f);
-//		f.vitesse.addLocal(f.calculF);
-//		f.calculF.set(f.acceleration).multLocal(dt * 0.5f);
-//		f.vitesse.addLocal(f.calculF);
-//
-//		// update angular speed
-//		f.calculF.set(f.lastAangulaire).multLocal(dt * 0.5f);
-//		f.vangulaire.addLocal(f.calculF);
-//		f.calculF.set(f.aangulaire).multLocal(dt * 0.5f);
-//		f.vangulaire.addLocal(f.calculF);
-//
-//		// update accel
-//		f.lastAccel.set(f.acceleration);
-//		f.lastAangulaire.set(f.aangulaire);
+	public void updateVitesse(long instant, long dtms) {
+		float dts = dtms*0.001f;
+
+		// update linear speed
+		f.calcul1.set(f.lastAccel).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calcul1);
+		f.calcul1.set(f.acceleration).multLocal(dts * 0.5f);
+		f.vitesse.addLocal(f.calcul1);
+		System.out.println(f.name+"JFF now speed = " + f.vitesse+" from accel "+f.acceleration+" and lastaccel="+f.lastAccel);
+
+		// update angular speed
+		f.calcul1.set(f.lastAangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calcul1);
+		f.calcul1.set(f.aangulaire).multLocal(dts * 0.5f);
+		f.vangulaire.addLocal(f.calcul1);
+		System.out.println(f.name+"JFF now aspeed = " + f.vangulaire+" from aAcel="+f.aangulaire+" & "+f.lastAangulaire);
+	}
+	
+	@Override
+	public void updatePosition(long instant, long dtms) {
+		float dts = dtms*0.001f;
+
+		// update linear position
+		f.calcul1.set(f.vitesse).multLocal(dts);
+		f.position.addLocal(f.calcul1);
+		System.out.println(f.name+"JFF now pos = " + f.position+" ("+f.vitesse+" * "+dts+")");
+
+		// update angular position
+		f.pangulaire.fromRotationMatrix(f.transfoMatrix.toRotationMatrix());
+		Quaterniond quaterAdd = new Quaterniond().fromAngleAxis(f.vangulaire.length() * dts, f.vangulaire);
+		f.pangulaire.multLocal(quaterAdd);
+		f.pangulaire.normalizeLocal();
+		System.out.println(f.name+"JFF now apos = " + f.pangulaire);
+		
+
+		f.transfoMatrix.setTransform(f.position, Vector3d.UNIT_XYZ,
+				f.pangulaire.toRotationMatrix());
+		
+		f.time = instant;
 	}
 
 	@Override

@@ -65,7 +65,7 @@ public class CollisionRayonTri {
 		System.out.println("--------------- triBB collision ---------- ");
 		checkTriTri(f2, f1, vitesseF1, dtms);
 
-		System.out.println("--------------- END rayCollision ---------- ");
+		System.out.println("--------------- END rayCollision ---------- "+bestPointeur);
 
 		if (bestPointeur != null) {
 			// pred.init = true;
@@ -75,6 +75,7 @@ public class CollisionRayonTri {
 			// pred.triIdx = bestIdxTri;
 			// pred.bestP = bestP;
 			// compute time
+			System.out.println("collisionRT new time: "+currentTime+"+"+timeMin+" = "+(currentTime + (long)timeMin));
 			pred.moment = currentTime + (long)timeMin; //(long) (distMin / vitesseF1.length());
 
 			// really, i can't be sure: maybe a tri-tri collision occur way
@@ -93,6 +94,7 @@ public class CollisionRayonTri {
 				pred.maxMomentError = dtms/10;
 			}
 
+			System.out.println("collisionRT new pred moment: "+pred.moment);
 			pred.precisionMoment = Precision.REFINED;
 		}
 		else {
